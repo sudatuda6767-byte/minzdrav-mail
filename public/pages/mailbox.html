@@ -32,7 +32,7 @@
                 </button>
 
                 <div class="user-menu" id="userMenuBtn">
-                    <img class="user-avatar" id="headerAvatar" src="/img/default-avatar.svg" alt="Профиль" onerror="this.src='/img/default-avatar.svg'">
+                    <img class="user-avatar" id="headerAvatar" src="/img/default-avatar.svg" alt="Профиль">
                     
                     <div class="user-dropdown" id="userDropdown">
                         <div class="user-dropdown-header">
@@ -152,6 +152,7 @@
         </main>
     </div>
 
+    <!-- МОДАЛЬНОЕ ОКНО НАПИСАНИЯ ПИСЬМА -->
     <div class="modal-overlay" id="composeModal">
         <div class="modal">
             <div class="modal-header">
@@ -206,6 +207,40 @@
                     <input type="file" id="fileInput" multiple style="display:none;" accept="*/*">
                     <button class="btn btn-secondary" id="attachFileBtn">📎 Вложить (до 10 МБ)</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ⭐ МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ТИКЕТА -->
+    <div class="modal-overlay" id="supportModal">
+        <div class="modal" style="max-width: 620px;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #F59E0B 0%, #DC2626 100%);">
+                <h2>🛠️ Обращение в техническую поддержку</h2>
+                <button class="modal-close" id="closeSupportBtn">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">
+                    Опишите вашу проблему или вопрос. Ваше обращение появится в админ-панели, техподдержка ответит вам в ближайшее время.
+                </p>
+                
+                <div id="supportError" style="display:none; background: #FEE2E2; color: #DC2626; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px;"></div>
+                <div id="supportSuccess" style="display:none; background: #D1FAE5; color: #059669; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 12px;"></div>
+                
+                <div class="form-group">
+                    <label>Тема обращения</label>
+                    <input type="text" id="supportSubject" placeholder="Кратко: с чем возникла проблема" required maxlength="100">
+                </div>
+
+                <div class="form-group">
+                    <label>Подробное описание</label>
+                    <textarea id="supportDescription" placeholder="Опишите вашу ситуацию подробно. Что не работает, при каких условиях, какие ошибки видите..." required rows="8" minlength="10" style="width: 100%; padding: 12px; background: var(--bg-main); border: 2px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text-main); font-family: inherit; resize: vertical;"></textarea>
+                    <p class="hint" style="margin-top: 4px;">Минимум 10 символов. Чем подробнее — тем быстрее вам помогут.</p>
+                </div>
+            </div>
+
+            <div class="compose-footer">
+                <button class="btn btn-secondary" id="cancelSupportBtn">Отмена</button>
+                <button class="btn" id="sendSupportBtn" style="background: linear-gradient(135deg, #F59E0B 0%, #DC2626 100%);">📮 Отправить обращение</button>
             </div>
         </div>
     </div>
