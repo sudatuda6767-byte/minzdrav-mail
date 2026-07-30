@@ -7,7 +7,6 @@ const http = require('http');
 const { Server } = require('socket.io');
 const pgSession = require('connect-pg-simple')(session);
 
-// Подключение к базе данных
 const { pool, initDatabase } = require('./database/db');
 
 // ==================== СОЗДАНИЕ ПРИЛОЖЕНИЯ ====================
@@ -17,31 +16,7 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
-// ==================== НАСТРОЙКИ ====================
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// ==================== ПОДКЛЮЧЕНИЕ БИБЛИОТЕК ====================
-require('dotenv').config();
-const express = require('express');
-const session = require('express-session');
-const path = require('path');
-const http = require('http');
-const { Server } = require('socket.io');
-const pgSession = require('connect-pg-simple')(session);
-
-const { pool, initDatabase } = require('./database/db');
-
-// ==================== СОЗДАНИЕ ПРИЛОЖЕНИЯ ====================
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
-
-const PORT = process.env.PORT || 3000;
-
-// ⚠️ ВАЖНО для Render: доверять прокси (для https и cookies)
+// ⚠️ ВАЖНО для Render: доверять прокси
 app.set('trust proxy', 1);
 
 // ==================== НАСТРОЙКИ ====================
@@ -50,7 +25,6 @@ app.use(express.urlencoded({ extended: true, limit: '15mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Настройка сессий (авторизация)
 const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(session({
@@ -64,14 +38,13 @@ app.use(session({
     saveUninitialized: false,
     proxy: true,
     cookie: {
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 дней
+        maxAge: 30 * 24 * 60 * 60 * 1000,
         httpOnly: true,
-        secure: isProduction,       // HTTPS только в проде
-        sameSite: isProduction ? 'lax' : 'lax'
+        secure: isProduction,
+        sameSite: 'lax'
     }
 }));
 
-// Передача io в маршруты
 app.use((req, res, next) => {
     req.io = io;
     next();
