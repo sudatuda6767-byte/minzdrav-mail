@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Настройки — minzdrav.ru</title>
+    <link rel="icon" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .settings-layout {
+            min-height: 100vh;
+            background: var(--bg-main);
+        }
+        .settings-header {
+            background: var(--brand-gradient);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .settings-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .settings-header-logo {
+            width: 36px;
+            height: 36px;
+            background: white;
+            border-radius: 8px;
+            padding: 4px;
+        }
+        .settings-header-logo img {
+            width: 100%;
+            height: 100%;
+        }
+        .settings-container {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+        .settings-section {
+            background: var(--bg-panel);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+        .settings-section h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+        .settings-label {
+            font-size: 14px;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+        .settings-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid var(--brand-blue-light);
+            object-fit: cover;
+        }
+        .avatar-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .id-display {
+            font-family: monospace;
+            font-size: 16px;
+            background: var(--bg-hover);
+            padding: 8px 14px;
+            border-radius: 8px;
+            filter: blur(4px);
+            transition: filter 0.3s;
+            cursor: pointer;
+            user-select: all;
+        }
+        .id-display.revealed {
+            filter: blur(0);
+        }
+        .theme-picker {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .theme-option {
+            padding: 12px 20px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-option.active {
+            border-color: var(--brand-blue-light);
+            background: var(--bg-selected);
+        }
+        .color-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .color-option {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: transform 0.15s;
+        }
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        .color-option.selected {
+            border-color: var(--text-main);
+            transform: scale(1.05);
+        }
+        .pending-warning {
+            background: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 14px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #92400E;
+        }
+        [data-theme="dark"] .pending-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #FCD34D;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .back-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="settings-layout">
+        <header class="settings-header">
+            <div class="settings-header-left">
+                <div class="settings-header-logo">
+                    <img src="/img/logo.svg" alt="minzdrav">
+                </div>
+                <h1 style="font-size: 20px;">⚙️ Настройки</h1>
+            </div>
+            <a href="/mail" class="back-btn">← Назад к почте</a>
+        </header>
+
+        <div class="settings-container">
+            
+            <!-- Информация о профиле -->
+            <div class="settings-section">
+                <h2>👤 Профиль</h2>
+                
+                <div class="settings-row">
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <img src="/img/default-avatar.svg" id="avatarPreview" class="avatar-preview">
+                        <div class="avatar-controls">
+                            <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
+                            <button class="btn" onclick="document.getElementById('avatarInput').click()">📷 Загрузить фото</button>
+                            <p class="hint">JPG, PNG, WEBP до 5 МБ. Без GIF.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-label">📧 Ваша почта</div>
+                        <div class="settings-desc" id="userEmailDisplay">...</div>
+                    </div>
+                </div>
+
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-label">🆔 Ваш уникальный ID</div>
+                        <div class="settings-desc">Никогда не меняется. Нажмите чтобы показать/скопировать</div>
+                    </div>
+                    <div class="id-display" id="uniqueIdDisplay" onclick="toggleId()">•••••••••••••••••••</div>
+                </div>
+
+                <div class="settings-row">
+                    <div>
+                        <div class="settings-label">📅 
