@@ -75,17 +75,29 @@
             color: var(--text-secondary);
             margin-top: 2px;
         }
+        .avatar-block {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
         .avatar-preview {
             width: 100px;
             height: 100px;
             border-radius: 50%;
             border: 3px solid var(--brand-blue-light);
             object-fit: cover;
+            background: white;
         }
         .avatar-controls {
             display: flex;
             flex-direction: column;
             gap: 8px;
+        }
+        .avatar-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
         .id-display {
             font-family: monospace;
@@ -183,11 +195,14 @@
                 <h2>👤 Профиль</h2>
                 
                 <div class="settings-row">
-                    <div style="display: flex; gap: 20px; align-items: center;">
-                        <img src="/img/default-avatar.png" id="avatarPreview" class="avatar-preview" onerror="this.src='/img/default-avatar.svg'">
+                    <div class="avatar-block">
+                        <img src="/img/default-avatar.png" id="avatarPreview" class="avatar-preview" onerror="this.onerror=null; this.src='/img/default-avatar.png';">
                         <div class="avatar-controls">
                             <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
-                            <button class="btn" onclick="document.getElementById('avatarInput').click()">📷 Загрузить фото</button>
+                            <div class="avatar-buttons">
+                                <button class="btn" onclick="document.getElementById('avatarInput').click()">📷 Загрузить фото</button>
+                                <button class="btn btn-secondary" id="resetAvatarBtn">🔄 Сбросить</button>
+                            </div>
                             <p class="hint">JPG, PNG, WEBP до 5 МБ. Без GIF.</p>
                         </div>
                     </div>
