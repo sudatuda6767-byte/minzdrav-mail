@@ -219,4 +219,108 @@
 
                 <div class="settings-row">
                     <div>
-                        <div class="settings-label">📅 
+                        <div class="settings-label">📅 Дата регистрации</div>
+                        <div class="settings-desc" id="createdAtDisplay">...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Внешний вид -->
+            <div class="settings-section">
+                <h2>🎨 Внешний вид</h2>
+                
+                <div class="settings-row" style="flex-direction: column; align-items: flex-start;">
+                    <div class="settings-label" style="margin-bottom: 12px;">Тема оформления</div>
+                    <div class="theme-picker">
+                        <div class="theme-option" data-theme="light">☀️ Светлая</div>
+                        <div class="theme-option" data-theme="dark">🌙 Тёмная</div>
+                    </div>
+                </div>
+
+                <div class="settings-row" style="flex-direction: column; align-items: flex-start;">
+                    <div class="settings-label" style="margin-bottom: 4px;">Основной цвет</div>
+                    <div class="settings-desc" style="margin-bottom: 12px;">Выберите свой любимый цвет</div>
+                    <div class="color-picker-grid" id="colorPicker">
+                        <div class="color-option" data-color="#3B82F6" style="background:#3B82F6"></div>
+                        <div class="color-option" data-color="#10B981" style="background:#10B981"></div>
+                        <div class="color-option" data-color="#8B5CF6" style="background:#8B5CF6"></div>
+                        <div class="color-option" data-color="#EC4899" style="background:#EC4899"></div>
+                        <div class="color-option" data-color="#F59E0B" style="background:#F59E0B"></div>
+                        <div class="color-option" data-color="#EF4444" style="background:#EF4444"></div>
+                        <div class="color-option" data-color="#06B6D4" style="background:#06B6D4"></div>
+                        <div class="color-option" data-color="#84CC16" style="background:#84CC16"></div>
+                        <div class="color-option" data-color="#1E3A8A" style="background:#1E3A8A"></div>
+                        <div class="color-option" data-color="#7C3AED" style="background:#7C3AED"></div>
+                    </div>
+                    <input type="color" id="customColorInput" style="margin-top: 12px; cursor: pointer;">
+                </div>
+            </div>
+
+            <!-- Смена пароля -->
+            <div class="settings-section">
+                <h2>🔑 Пароль</h2>
+                
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label>Текущий пароль</label>
+                        <input type="password" id="oldPassword" required maxlength="32">
+                    </div>
+                    <div class="form-group">
+                        <label>Новый пароль</label>
+                        <input type="password" id="newPassword" required maxlength="32">
+                    </div>
+                    <div class="form-group">
+                        <label>Повторите новый пароль</label>
+                        <input type="password" id="confirmNewPassword" required maxlength="32">
+                    </div>
+                    <button type="submit" class="btn">💾 Сменить пароль</button>
+                </form>
+            </div>
+
+            <!-- Секретное слово -->
+            <div class="settings-section">
+                <h2>🔐 Секретное слово</h2>
+                
+                <div id="secretBlockedMsg" style="display:none;">
+                    <div class="pending-warning">
+                        🚫 Смена секретного слова заблокирована навсегда. Изменить нельзя.
+                    </div>
+                </div>
+
+                <div id="secretPendingMsg" style="display:none;">
+                    <div class="pending-warning">
+                        ⏳ Запланирована смена секретного слова.<br>
+                        Будет применена: <strong id="pendingDate"></strong><br><br>
+                        <button class="btn btn-secondary" onclick="cancelSecretChange()" style="margin-right: 8px;">❌ Отменить смену</button>
+                    </div>
+                </div>
+
+                <form id="secretForm">
+                    <p class="hint" style="margin-bottom: 12px;">⚠️ Для смены секретного слова требуется 24 часа ожидания. Это защищает вас от взлома.</p>
+                    <div class="form-group">
+                        <label>Ваш текущий пароль</label>
+                        <input type="password" id="secretChangePassword" required maxlength="32">
+                    </div>
+                    <div class="form-group">
+                        <label>Новое секретное слово</label>
+                        <input type="text" id="newSecret" required maxlength="32">
+                    </div>
+                    <button type="submit" class="btn">📅 Запланировать смену</button>
+                </form>
+
+                <div class="settings-row" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border);">
+                    <div>
+                        <div class="settings-label" style="color: var(--danger);">⚠️ Заблокировать смену навсегда</div>
+                        <div class="settings-desc">Никто и никогда не сможет сменить секретное слово, даже вы. Действие необратимо.</div>
+                    </div>
+                    <button class="btn btn-danger" onclick="blockSecretForever()">🔒 Заблокировать</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/settings.js"></script>
+</body>
+</html>
