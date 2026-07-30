@@ -11,7 +11,6 @@ let filters = { dateFrom: '', dateTo: '', fromUser: '' };
 
 // ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async () => {
-    // Проверка авторизации
     const me = await fetchAPI('/api/auth/me');
     if (!me.authorized) {
         window.location.href = '/login';
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentUser = me.user;
     setupUser();
     
-    // Socket.io для уведомлений
     if (typeof io !== 'undefined') {
         const socket = io();
         socket.emit('register-user', currentUser.id);
@@ -30,7 +28,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
     
-    // Проверка отложенной смены секретки
     await checkPendingSecret();
     
     setupHandlers();
@@ -54,9 +51,17 @@ async function fetchAPI(url, options = {}) {
 
 function setupUser() {
     document.getElementById('userDropdownName').textContent = currentUser.email;
-    document.getElementById('userDropdownEmail').textContent = 'ID: ' + currentUser.uniqueId;
+    // ⚠️ ИЗМЕНЕНО: НЕ показываем ID в дропдауне
+    document.getElementById('userDropdownEmail').textContent = 'Профиль пользователя';
+    
     if (currentUser.avatar) {
-        document.getElementById('headerAvatar').src = currentUser.avatar;
+        // Устанавливаем аватарку с защитой от битой ссылки
+        const headerAvatar = document.getElementById('headerAvatar');
+        headerAvatar.onerror = function() {
+            this.onerror = null;
+            this.src = '/img/default-avatar.png';
+        };
+        headerAvatar.src = currentUser.avatar;
     }
     if (currentUser.isAdmin) {
         document.getElementById('adminLink').style.display = 'flex';
@@ -74,9 +79,8 @@ async function checkPendingSecret() {
     }
 }
 
-// ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+// ==================== ОБРАБОТЧИКИ ====================
 function setupHandlers() {
-    // Меню пользователя
     document.getElementById('userMenuBtn').addEventListener('click', (e) => {
         e.stopPropagation();
         document.getElementById('userDropdown').classList.toggle('show');
@@ -85,42 +89,35 @@ function setupHandlers() {
         document.getElementById('userDropdown').classList.remove('show');
     });
     
-    // Выход
     document.getElementById('logoutBtn').addEventListener('click', async () => {
         await fetchAPI('/api/auth/logout', { method: 'POST' });
         window.location.href = '/login';
     });
     
-    // Папки
     document.querySelectorAll('.folder-item[data-folder]').forEach(el => {
         el.addEventListener('click', () => {
             switchFolder(el.dataset.folder, el.querySelector('span:nth-child(2)').textContent);
         });
     });
     
-    // Кнопка "На сайт" (пустая пока)
     document.getElementById('siteBtn').addEventListener('click', (e) => {
         e.preventDefault();
         notify('🌐 Сайт находится в разработке');
     });
     
-    // Кнопка "Техподдержка"
     document.getElementById('supportBtn').addEventListener('click', () => {
         openCompose('tekhnicheskaya-podderzhka-pochty@minzdrav.ru');
     });
     
-    // Написать письмо
     document.getElementById('composeBtn').addEventListener('click', () => openCompose());
     document.getElementById('closeComposeBtn').addEventListener('click', closeCompose);
     document.getElementById('composeModal').addEventListener('click', (e) => {
         if (e.target.id === 'composeModal') closeCompose();
     });
     
-    // Отправка
     document.getElementById('sendBtn').addEventListener('click', () => sendEmail(false));
     document.getElementById('saveDraftBtn').addEventListener('click', () => sendEmail(true));
     
-    // Переключение копий
     document.getElementById('toggleCcBtn').addEventListener('click', () => {
         const cc = document.getElementById('ccField');
         const bcc = document.getElementById('bccField');
@@ -129,7 +126,6 @@ function setupHandlers() {
         bcc.style.display = show ? 'flex' : 'none';
     });
     
-    // Редактор
     document.querySelectorAll('.editor-btn[data-cmd]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -138,25 +134,21 @@ function setupHandlers() {
         });
     });
     
-    // Вставка ссылки
     document.getElementById('insertLinkBtn').addEventListener('click', () => {
         const url = prompt('Введите URL:', 'https://');
         if (url) document.execCommand('createLink', false, url);
     });
     
-    // Вставка изображения
     document.getElementById('insertImageBtn').addEventListener('click', () => {
         const url = prompt('Ссылка на изображение:', 'https://');
         if (url) document.execCommand('insertImage', false, url);
     });
     
-    // Вложение файлов
     document.getElementById('attachFileBtn').addEventListener('click', () => {
         document.getElementById('fileInput').click();
     });
     document.getElementById('fileInput').addEventListener('change', handleFileAttach);
     
-    // Поиск
     let searchTimeout;
     document.getElementById('searchInput').addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
@@ -164,7 +156,6 @@ function setupHandlers() {
         searchTimeout = setTimeout(loadEmails, 400);
     });
     
-    // Фильтры
     document.getElementById('filtersToggle').addEventListener('click', () => {
         const p = document.getElementById('filtersPanel');
         p.style.display = p.style.display === 'none' ? 'block' : 'none';
@@ -183,7 +174,6 @@ function setupHandlers() {
         loadEmails();
     });
     
-    // Действия с письмами
     document.getElementById('refreshBtn').addEventListener('click', loadEmails);
     document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
     document.getElementById('markReadBtn').addEventListener('click', () => doAction('read'));
@@ -197,7 +187,6 @@ function setupHandlers() {
         }
     });
     
-    // Добавление папки
     document.getElementById('addFolderBtn').addEventListener('click', async () => {
         const name = prompt('Название папки:');
         if (!name) return;
@@ -213,7 +202,7 @@ function setupHandlers() {
     });
 }
 
-// ==================== РАБОТА С ПАПКАМИ ====================
+// ==================== ПАПКИ ====================
 async function loadCustomFolders() {
     const data = await fetchAPI('/api/mail/folders');
     const container = document.getElementById('customFolders');
@@ -255,7 +244,7 @@ function switchFolder(folder, title) {
     loadEmails();
 }
 
-// ==================== ЗАГРУЗКА ПИСЕМ ====================
+// ==================== ПИСЬМА ====================
 async function loadEmails() {
     const container = document.getElementById('emailListContainer');
     container.innerHTML = '<div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">Загрузка...</div>';
@@ -273,7 +262,6 @@ async function loadEmails() {
     currentEmails = data.emails || [];
     selectedEmailIds = [];
     
-    // Обновляем счётчики
     const inboxCount = document.getElementById('count-inbox');
     const allCount = document.getElementById('count-all');
     if (inboxCount) {
@@ -329,7 +317,6 @@ function renderEmails() {
         `;
     }).join('');
     
-    // Клики
     container.querySelectorAll('.email-item').forEach(item => {
         item.addEventListener('click', (e) => {
             if (e.target.type === 'checkbox') return;
@@ -377,7 +364,6 @@ async function doAction(action, value) {
     }
 }
 
-// ==================== ПРОСМОТР ПИСЬМА ====================
 async function openEmail(id) {
     const data = await fetchAPI('/api/mail/email/' + id);
     if (!data) return;
@@ -437,7 +423,6 @@ async function openEmail(id) {
     `;
     view.classList.add('show-mobile');
     
-    // Обновляем счётчик если было непрочитано
     setTimeout(loadEmails, 500);
 }
 
@@ -474,7 +459,7 @@ async function moveToFolderPrompt() {
     }
 }
 
-// ==================== НАПИСАНИЕ ПИСЬМА ====================
+// ==================== НАПИСАНИЕ ====================
 function openCompose(to = '', replyData = null) {
     document.getElementById('composeModal').classList.add('show');
     document.getElementById('composeTo').value = to;
@@ -626,9 +611,7 @@ function formatSize(bytes) {
     return (bytes / (1024 * 1024)).toFixed(1) + ' МБ';
 }
 
-// ==================== УВЕДОМЛЕНИЯ ====================
 function notify(msg) {
-    // Простое уведомление внизу экрана
     const existing = document.getElementById('notify-toast');
     if (existing) existing.remove();
     
@@ -654,13 +637,11 @@ function notify(msg) {
     
     setTimeout(() => toast.remove(), 4000);
     
-    // Браузерное уведомление
     if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('minzdrav.ru', { body: msg, icon: '/img/logo.png' });
     }
 }
 
-// Запрос разрешения на уведомления
 if ('Notification' in window && Notification.permission === 'default') {
     setTimeout(() => Notification.requestPermission(), 3000);
 }
