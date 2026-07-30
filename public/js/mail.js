@@ -444,7 +444,7 @@ async function openEmail(id) {
 function showEmptyView() {
     document.getElementById('emailView').innerHTML = `
         <div class="empty-view">
-            <img src="/img/logo.svg" alt="minzdrav">
+            <img src="/img/logo.png" alt="minzdrav">
             <h2>Выберите письмо</h2>
             <p>Здесь появится содержимое выбранного письма</p>
         </div>
@@ -656,7 +656,7 @@ function notify(msg) {
     
     // Браузерное уведомление
     if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('minzdrav.ru', { body: msg, icon: '/img/logo.svg' });
+        new Notification('minzdrav.ru', { body: msg, icon: '/img/logo.png' });
     }
 }
 
