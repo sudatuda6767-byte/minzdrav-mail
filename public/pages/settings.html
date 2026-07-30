@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Настройки — minzdrav.ru</title>
-    <link rel="icon" href="/img/logo.svg">
+    <link rel="icon" href="/img/logo.png">
     <link rel="stylesheet" href="/css/main.css">
     <style>
-        .settings-layout {
-            min-height: 100vh;
-            background: var(--bg-main);
-        }
+        .settings-layout { min-height: 100vh; background: var(--bg-main); }
         .settings-header {
             background: var(--brand-gradient);
             color: white;
@@ -22,18 +19,24 @@
         .settings-header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
         .settings-header-logo {
-            width: 36px;
-            height: 36px;
+            width: 54px;
+            height: 54px;
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         .settings-header-logo img {
             width: 100%;
             height: 100%;
+            object-fit: contain;
+            display: block;
         }
         .settings-container {
             max-width: 900px;
@@ -64,9 +67,7 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .settings-row:last-child {
-            border-bottom: none;
-        }
+        .settings-row:last-child { border-bottom: none; }
         .settings-label {
             font-size: 14px;
             color: var(--text-main);
@@ -100,9 +101,7 @@
             cursor: pointer;
             user-select: all;
         }
-        .id-display.revealed {
-            filter: blur(0);
-        }
+        .id-display.revealed { filter: blur(0); }
         .theme-picker {
             display: flex;
             gap: 12px;
@@ -135,9 +134,7 @@
             border: 3px solid transparent;
             transition: transform 0.15s;
         }
-        .color-option:hover {
-            transform: scale(1.1);
-        }
+        .color-option:hover { transform: scale(1.1); }
         .color-option.selected {
             border-color: var(--text-main);
             transform: scale(1.05);
@@ -168,9 +165,7 @@
             align-items: center;
             gap: 6px;
         }
-        .back-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
+        .back-btn:hover { background: rgba(255,255,255,0.3); }
     </style>
 </head>
 <body>
@@ -178,7 +173,7 @@
         <header class="settings-header">
             <div class="settings-header-left">
                 <div class="settings-header-logo">
-                    <img src="/img/logo.svg" alt="minzdrav">
+                    <img src="/img/logo.png" alt="minzdrav">
                 </div>
                 <h1 style="font-size: 20px;">⚙️ Настройки</h1>
             </div>
@@ -187,13 +182,12 @@
 
         <div class="settings-container">
             
-            <!-- Информация о профиле -->
             <div class="settings-section">
                 <h2>👤 Профиль</h2>
                 
                 <div class="settings-row">
                     <div style="display: flex; gap: 20px; align-items: center;">
-                        <img src="/img/default-avatar.svg" id="avatarPreview" class="avatar-preview">
+                        <img src="/img/default-avatar.png" id="avatarPreview" class="avatar-preview" onerror="this.src='/img/default-avatar.svg'">
                         <div class="avatar-controls">
                             <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
                             <button class="btn" onclick="document.getElementById('avatarInput').click()">📷 Загрузить фото</button>
@@ -225,7 +219,6 @@
                 </div>
             </div>
 
-            <!-- Внешний вид -->
             <div class="settings-section">
                 <h2>🎨 Внешний вид</h2>
                 
@@ -256,7 +249,6 @@
                 </div>
             </div>
 
-            <!-- Смена пароля -->
             <div class="settings-section">
                 <h2>🔑 Пароль</h2>
                 
@@ -277,7 +269,6 @@
                 </form>
             </div>
 
-            <!-- Секретное слово -->
             <div class="settings-section">
                 <h2>🔐 Секретное слово</h2>
                 
