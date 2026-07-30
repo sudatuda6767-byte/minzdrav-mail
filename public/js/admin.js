@@ -1,8 +1,8 @@
 let allTickets = [];
 let allUsers = [];
+let allWatched = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Проверка что мы админ
     const me = await fetch('/api/auth/me', { credentials: 'include' }).then(r => r.json());
     if (!me.authorized || !me.user.isAdmin) {
         alert('Доступ запрещён');
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupHandlers();
     await loadTickets();
     await loadUsers();
+    await loadWatched();
 });
 
 function setupTabs() {
@@ -23,6 +24,11 @@ function setupTabs() {
             document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
             tab.classList.add('active');
             document.getElementById(tab.dataset.tab + 'Panel').classList.add('active');
+            
+            // Обновляем список при переключении на вкладку "Под наблюдением"
+            if (tab.dataset.tab === 'watched') {
+                loadWatched();
+            }
         });
     });
 }
@@ -30,6 +36,47 @@ function setupTabs() {
 function setupHandlers() {
     document.getElementById('ticketFilter').addEventListener('change', renderTickets);
     document.getElementById('userSearch').addEventListener('input', renderUsers);
+    
+    // Форма добавления под наблюдение
+    document.getElementById('addWatchForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('watchEmail').value.trim();
+        const reason = document.getElementById('watchReason').value.trim();
+        const statusEl = document.getElementById('watchFormStatus');
+        
+        if (!email || !reason) {
+            showFormStatus('Заполните все поля', 'error');
+            return;
+        }
+        
+        const res = await fetch('/api/admin/watch-user-by-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, reason }),
+            credentials: 'include'
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok) {
+            showFormStatus('✅ ' + data.message, 'success');
+            document.getElementById('addWatchForm').reset();
+            await loadWatched();
+            await loadUsers();
+        } else {
+            showFormStatus('❌ ' + (data.error || 'Ошибка'), 'error');
+        }
+    });
+}
+
+function showFormStatus(msg, type) {
+    const el = document.getElementById('watchFormStatus');
+    el.textContent = msg;
+    el.className = 'form-status ' + type;
+    setTimeout(() => {
+        el.style.display = 'none';
+    }, 6000);
 }
 
 async function loadTickets() {
@@ -99,19 +146,12 @@ async function resetUserPassword(email, ticketId) {
     const newPassword = prompt(`Новый пароль для ${email}@minzdrav.ru:\n(Сообщите его пользователю в ответе)`);
     if (!newPassword || newPassword.length > 32) return;
     
-    // Найти userId по email
-    const user = allUsers.find(u => u.email === email);
-    if (!user) {
-        // Догрузим пользователей
-        await loadUsers();
-        const user2 = allUsers.find(u => u.email === email);
-        if (!user2) {
-            alert('Пользователь не найден');
-            return;
-        }
-    }
-    
+    if (allUsers.length === 0) await loadUsers();
     const targetUser = allUsers.find(u => u.email === email);
+    if (!targetUser) {
+        alert('Пользователь не найден');
+        return;
+    }
     
     const res = await fetch('/api/admin/reset-user-password', {
         method: 'POST',
@@ -134,7 +174,6 @@ async function loadUsers() {
     const data = await res.json();
     allUsers = data.users || [];
     renderUsers();
-    renderWatched();
 }
 
 function renderUsers() {
@@ -168,7 +207,7 @@ function renderUsers() {
                     ${u.watched > 0 ? '<span class="user-badge badge-watched">⚠️ Под наблюдением</span>' : ''}
                 </div>
                 <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-                    ${!u.is_admin && u.watched == 0 ? `<button class="btn btn-secondary" onclick="watchUser(${u.id}, '${escapeHtml(u.email)}')">⚠️ Наблюдать</button>` : ''}
+                    ${!u.is_admin && u.watched == 0 ? `<button class="btn btn-secondary" onclick="quickWatchUser(${u.id}, '${escapeHtml(u.email)}')">⚠️ Наблюдать</button>` : ''}
                     ${u.watched > 0 ? `<button class="btn btn-secondary" onclick="unwatchUser(${u.id})">✅ Снять наблюдение</button>` : ''}
                     ${!u.is_admin ? `<button class="btn btn-secondary" onclick="adminResetPass(${u.id}, '${escapeHtml(u.email)}')">🔑 Сбросить пароль</button>` : ''}
                 </div>
@@ -177,31 +216,50 @@ function renderUsers() {
     `).join('');
 }
 
+async function loadWatched() {
+    const res = await fetch('/api/admin/watched', { credentials: 'include' });
+    const data = await res.json();
+    allWatched = data.watched || [];
+    renderWatched();
+}
+
 function renderWatched() {
-    const watched = allUsers.filter(u => u.watched > 0);
     const container = document.getElementById('watchedContainer');
     
-    if (watched.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-muted);">👍 Никто не находится под наблюдением</div>';
+    if (allWatched.length === 0) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                <div style="font-size: 48px; margin-bottom: 12px;">👍</div>
+                <div>Никто не находится под наблюдением</div>
+            </div>
+        `;
         return;
     }
     
-    container.innerHTML = watched.map(u => `
-        <div class="user-card">
-            <div class="user-row">
-                <div class="user-info">
-                    <div class="user-email">${escapeHtml(u.email)}@minzdrav.ru</div>
-                    <div class="user-id">ID: ${escapeHtml(u.unique_id)}</div>
+    container.innerHTML = allWatched.map(w => `
+        <div class="watched-card">
+            <div class="watched-info">
+                <div class="user-info" style="flex: 1;">
+                    <div class="user-email">⚠️ ${escapeHtml(w.email)}@minzdrav.ru</div>
+                    <div class="user-id">ID: ${escapeHtml(w.unique_id)}</div>
+                    <div class="watched-reason">
+                        <strong>Причина:</strong> ${escapeHtml(w.reason)}
+                    </div>
+                    <div class="watched-date">
+                        Добавлен: ${new Date(w.added_at).toLocaleString('ru-RU')}
+                    </div>
                 </div>
-                <button class="btn btn-secondary" onclick="unwatchUser(${u.id})">✅ Снять наблюдение</button>
+                <button class="btn btn-secondary" onclick="unwatchUser(${w.user_id})" style="align-self: center;">
+                    ✅ Снять наблюдение
+                </button>
             </div>
         </div>
     `).join('');
 }
 
-async function watchUser(userId, email) {
+async function quickWatchUser(userId, email) {
     const reason = prompt(`Причина наблюдения для ${email}@minzdrav.ru:`);
-    if (!reason) return;
+    if (!reason || reason.trim().length < 3) return;
     
     const res = await fetch('/api/admin/watch-user', {
         method: 'POST',
@@ -211,13 +269,14 @@ async function watchUser(userId, email) {
     });
     
     if (res.ok) {
-        alert('✅ Пользователь добавлен под наблюдение');
+        alert('✅ Пользователь добавлен под наблюдение.\nВсе его будущие письма будут помечены как "Нежелательные".');
         await loadUsers();
+        await loadWatched();
     }
 }
 
 async function unwatchUser(userId) {
-    if (!confirm('Снять наблюдение?')) return;
+    if (!confirm('Снять наблюдение?\nБудущие письма от этого пользователя больше НЕ будут помечаться как "Нежелательные".')) return;
     
     const res = await fetch('/api/admin/unwatch-user', {
         method: 'POST',
@@ -229,6 +288,7 @@ async function unwatchUser(userId) {
     if (res.ok) {
         alert('✅ Наблюдение снято');
         await loadUsers();
+        await loadWatched();
     }
 }
 
