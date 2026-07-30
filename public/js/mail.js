@@ -9,7 +9,6 @@ let attachedFiles = [];
 let searchQuery = '';
 let filters = { dateFrom: '', dateTo: '', fromUser: '' };
 
-// ==================== ИНИЦИАЛИЗАЦИЯ ====================
 document.addEventListener('DOMContentLoaded', async () => {
     const me = await fetchAPI('/api/auth/me');
     if (!me.authorized) {
@@ -51,11 +50,9 @@ async function fetchAPI(url, options = {}) {
 
 function setupUser() {
     document.getElementById('userDropdownName').textContent = currentUser.email;
-    // ⚠️ ИЗМЕНЕНО: НЕ показываем ID в дропдауне
     document.getElementById('userDropdownEmail').textContent = 'Профиль пользователя';
     
     if (currentUser.avatar) {
-        // Устанавливаем аватарку с защитой от битой ссылки
         const headerAvatar = document.getElementById('headerAvatar');
         headerAvatar.onerror = function() {
             this.onerror = null;
@@ -79,7 +76,6 @@ async function checkPendingSecret() {
     }
 }
 
-// ==================== ОБРАБОТЧИКИ ====================
 function setupHandlers() {
     document.getElementById('userMenuBtn').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -105,9 +101,20 @@ function setupHandlers() {
         notify('🌐 Сайт находится в разработке');
     });
     
+    // ⭐ КНОПКА "ТЕХНИЧЕСКАЯ ПОДДЕРЖКА" — открывает модалку тикета
     document.getElementById('supportBtn').addEventListener('click', () => {
-        openCompose('tekhnicheskaya-podderzhka-pochty@minzdrav.ru');
+        openSupportModal();
     });
+    
+    // ⭐ ЗАКРЫТИЕ модалки поддержки
+    document.getElementById('closeSupportBtn').addEventListener('click', closeSupportModal);
+    document.getElementById('cancelSupportBtn').addEventListener('click', closeSupportModal);
+    document.getElementById('supportModal').addEventListener('click', (e) => {
+        if (e.target.id === 'supportModal') closeSupportModal();
+    });
+    
+    // ⭐ ОТПРАВКА тикета
+    document.getElementById('sendSupportBtn').addEventListener('click', sendSupportTicket);
     
     document.getElementById('composeBtn').addEventListener('click', () => openCompose());
     document.getElementById('closeComposeBtn').addEventListener('click', closeCompose);
@@ -200,6 +207,74 @@ function setupHandlers() {
             notify('✅ Папка создана');
         }
     });
+}
+
+// ==================== ⭐ МОДАЛКА ТИКЕТА В ТЕХПОДДЕРЖКУ ====================
+function openSupportModal() {
+    document.getElementById('supportModal').classList.add('show');
+    document.getElementById('supportSubject').value = '';
+    document.getElementById('supportDescription').value = '';
+    document.getElementById('supportError').style.display = 'none';
+    document.getElementById('supportSuccess').style.display = 'none';
+    document.getElementById('supportSubject').focus();
+}
+
+function closeSupportModal() {
+    document.getElementById('supportModal').classList.remove('show');
+}
+
+async function sendSupportTicket() {
+    const subject = document.getElementById('supportSubject').value.trim();
+    const description = document.getElementById('supportDescription').value.trim();
+    const errorEl = document.getElementById('supportError');
+    const successEl = document.getElementById('supportSuccess');
+    
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+    
+    if (!subject) {
+        errorEl.textContent = 'Укажите тему обращения';
+        errorEl.style.display = 'block';
+        return;
+    }
+    if (!description || description.length < 10) {
+        errorEl.textContent = 'Опишите проблему подробнее (минимум 10 символов)';
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    const btn = document.getElementById('sendSupportBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Отправка...';
+    
+    try {
+        const res = await fetch('/api/tickets/create-from-mail', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ subject, description }),
+            credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            successEl.textContent = '✅ ' + data.message;
+            successEl.style.display = 'block';
+            
+            setTimeout(() => {
+                closeSupportModal();
+                notify('📮 ' + data.message);
+            }, 2000);
+        } else {
+            errorEl.textContent = data.error || 'Ошибка отправки';
+            errorEl.style.display = 'block';
+        }
+    } catch (e) {
+        errorEl.textContent = 'Ошибка сети';
+        errorEl.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '📮 Отправить обращение';
+    }
 }
 
 // ==================== ПАПКИ ====================
@@ -459,7 +534,6 @@ async function moveToFolderPrompt() {
     }
 }
 
-// ==================== НАПИСАНИЕ ====================
 function openCompose(to = '', replyData = null) {
     document.getElementById('composeModal').classList.add('show');
     document.getElementById('composeTo').value = to;
@@ -568,7 +642,6 @@ async function sendEmail(isDraft) {
     }
 }
 
-// ==================== УТИЛИТЫ ====================
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
