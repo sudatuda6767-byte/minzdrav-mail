@@ -306,8 +306,8 @@ body {
 }
 
 .mail-header-logo {
-    width: 140px;
-    height: 140px;
+    width: 90px;
+    height: 90px;
     display: flex;
     align-items: center;
     justify-content: center;
