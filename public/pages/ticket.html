@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Обращение в поддержку — minzdrav.ru</title>
-    <link rel="icon" href="/img/logo.svg">
+    <link rel="icon" href="/img/logo.png">
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
     <div class="auth-container">
         <div class="auth-box" style="max-width: 560px;">
             <div class="auth-logo">
-                <img src="/img/logo.svg" alt="minzdrav.ru">
-                <h1>Техническая поддержка</h1>
+                <img src="/img/logo.png" alt="minzdrav.ru">
+                <h1 style="font-size: 22px;">Техническая поддержка</h1>
             </div>
             <p class="auth-subtitle">
                 Создание запроса на восстановление доступа<br>
@@ -28,28 +28,14 @@
                 <div class="form-group">
                     <label for="lostEmail">Введите вашу почту, от которой вы утеряли доступ</label>
                     <div class="email-input-wrapper">
-                        <input 
-                            type="text" 
-                            id="lostEmail" 
-                            placeholder="название"
-                            required
-                            maxlength="32"
-                        >
+                        <input type="text" id="lostEmail" placeholder="название" required maxlength="32">
                         <span class="email-suffix">@minzdrav.ru</span>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="description">
-                        Опишите подробно как вы утеряли доступ
-                    </label>
-                    <textarea 
-                        id="description" 
-                        placeholder="Для оперативности и помощи в этой ситуации техническим специалистам, опишите ключевые моменты в подробностях..."
-                        required
-                        rows="8"
-                        minlength="20"
-                    ></textarea>
+                    <label for="description">Опишите подробно как вы утеряли доступ</label>
+                    <textarea id="description" placeholder="Для оперативности и помощи в этой ситуации техническим специалистам, опишите ключевые моменты в подробностях..." required rows="8" minlength="20"></textarea>
                     <p class="hint">Минимум 20 символов. Можно приложить скриншоты позже в переписке.</p>
                 </div>
 
