@@ -69,12 +69,15 @@
             display: none;
         }
         .admin-panel.active { display: block; }
-        .ticket-card, .user-card {
+        .ticket-card, .user-card, .watched-card {
             background: var(--bg-main);
             border-radius: 10px;
             padding: 16px;
             margin-bottom: 12px;
             border-left: 4px solid var(--brand-blue-light);
+        }
+        .watched-card {
+            border-left-color: var(--warning);
         }
         .ticket-card.resolved {
             border-left-color: var(--success);
@@ -151,6 +154,112 @@
             margin-bottom: 16px;
             color: var(--text-main);
         }
+        
+        /* Форма добавления под наблюдение */
+        .watch-form-card {
+            background: linear-gradient(135deg, #FEF3C7 0%, #FED7AA 100%);
+            border-left: 4px solid var(--warning);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        [data-theme="dark"] .watch-form-card {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(234, 88, 12, 0.15) 100%);
+        }
+        .watch-form-card h3 {
+            color: #92400E;
+            margin-bottom: 8px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        [data-theme="dark"] .watch-form-card h3 {
+            color: #FCD34D;
+        }
+        .watch-form-card p {
+            font-size: 13px;
+            color: #78350F;
+            margin-bottom: 14px;
+        }
+        [data-theme="dark"] .watch-form-card p {
+            color: #FDE68A;
+        }
+        .watch-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+        }
+        .watch-form input {
+            padding: 10px 14px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-main);
+            outline: none;
+        }
+        .watch-form input:focus {
+            border-color: var(--warning);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+        }
+        .watch-form button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #F59E0B 0%, #DC2626 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .watch-form button:hover {
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+        }
+        @media (max-width: 700px) {
+            .watch-form { grid-template-columns: 1fr; }
+        }
+        
+        .watched-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .watched-reason {
+            background: var(--bg-panel);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 8px;
+            color: var(--text-main);
+            border-left: 3px solid var(--warning);
+        }
+        .watched-date {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        
+        .form-status {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+        .form-status.success {
+            background: #D1FAE5;
+            color: #065F46;
+            display: block;
+        }
+        .form-status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -195,9 +304,37 @@
 
         <div class="admin-panel" id="watchedPanel">
             <h2 style="margin-bottom: 16px;">⚠️ Пользователи под наблюдением</h2>
+            
+            <!-- ФОРМА ДОБАВЛЕНИЯ -->
+            <div class="watch-form-card">
+                <h3>➕ Добавить пользователя под наблюдение</h3>
+                <p>
+                    После добавления, ВСЕ письма от указанного пользователя будут автоматически помечаться как «Нежелательные» у всех получателей и содержать предупреждение от администрации.
+                </p>
+                <form id="addWatchForm" class="watch-form">
+                    <input 
+                        type="text" 
+                        id="watchEmail" 
+                        placeholder="имя@minzdrav.ru или просто имя" 
+                        required
+                        maxlength="32"
+                    >
+                    <input 
+                        type="text" 
+                        id="watchReason" 
+                        placeholder="Причина (обязательно)" 
+                        required
+                        maxlength="200"
+                    >
+                    <button type="submit">⚠️ Добавить</button>
+                </form>
+                <div id="watchFormStatus" class="form-status"></div>
+            </div>
+            
             <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">
-                Письма от этих пользователей будут помечены как «Нежелательные» с предупреждением получателю.
+                <strong>Текущий список пользователей под наблюдением:</strong>
             </p>
+            
             <div id="watchedContainer">
                 <div style="text-align: center; padding: 40px; color: var(--text-muted);">Загрузка...</div>
             </div>
