@@ -1,35 +1,24 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const router = express.Router();
 const { pool } = require('../database/db');
 const { requireAuth } = require('../middleware/authCheck');
+const cloudinary = require('cloudinary').v2;
 
-// ⚠️ ВАЖНО: аватарки сохраняем в постоянную папку
-const AVATAR_DIR = path.join(__dirname, '..', 'uploads', 'avatars');
-if (!fs.existsSync(AVATAR_DIR)) {
-    fs.mkdirSync(AVATAR_DIR, { recursive: true });
-}
+// ⭐ Настройка Cloudinary
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true
+});
 
 const DEFAULT_AVATAR = '/img/default-avatar.png';
 
-// Загрузка аватарки
-const avatarStorage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, AVATAR_DIR);
-    },
-    filename: (req, file, cb) => {
-        // Уникальное имя: user_ID_timestamp.ext
-        const ext = path.extname(file.originalname).toLowerCase() || '.png';
-        const filename = `user_${req.session.userId}_${Date.now()}${ext}`;
-        cb(null, filename);
-    }
-});
-
-const uploadAvatar = multer({
-    storage: avatarStorage,
+// Загрузка через memory (буфер)
+const upload = multer({
+    storage: multer.memoryStorage(),
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -38,11 +27,44 @@ const uploadAvatar = multer({
     }
 });
 
+// Функция загрузки в Cloudinary
+function uploadToCloudinary(buffer, userId) {
+    return new Promise((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+            {
+                folder: 'minzdrav_avatars',
+                public_id: `user_${userId}`,
+                overwrite: true,
+                resource_type: 'image',
+                transformation: [
+                    { width: 400, height: 400, crop: 'fill', gravity: 'face' },
+                    { quality: 'auto:good' }
+                ]
+            },
+            (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+            }
+        );
+        uploadStream.end(buffer);
+    });
+}
+
+// Функция удаления из Cloudinary
+async function deleteFromCloudinary(publicId) {
+    try {
+        await cloudinary.uploader.destroy(publicId);
+        return true;
+    } catch (err) {
+        console.log('Не удалось удалить из Cloudinary:', err.message);
+        return false;
+    }
+}
+
 // ==================== СМЕНА ПАРОЛЯ ====================
 router.post('/change-password', requireAuth, async (req, res) => {
     try {
         const { oldPassword, newPassword, confirmPassword } = req.body;
-
         if (!oldPassword || !newPassword || !confirmPassword) {
             return res.status(400).json({ error: 'Заполните все поля' });
         }
@@ -69,7 +91,6 @@ router.post('/change-password', requireAuth, async (req, res) => {
 router.post('/request-secret-change', requireAuth, async (req, res) => {
     try {
         const { password, newSecret } = req.body;
-
         const user = await pool.query('SELECT * FROM users WHERE id = $1', [req.session.userId]);
         const u = user.rows[0];
 
@@ -102,7 +123,6 @@ router.post('/request-secret-change', requireAuth, async (req, res) => {
     }
 });
 
-// ==================== ОТМЕНИТЬ СМЕНУ СЕКРЕТКИ ====================
 router.post('/cancel-secret-change', requireAuth, async (req, res) => {
     await pool.query(`
         UPDATE users SET secret_change_pending = NULL, pending_new_secret = NULL
@@ -111,7 +131,6 @@ router.post('/cancel-secret-change', requireAuth, async (req, res) => {
     res.json({ success: true, message: 'Смена секретного слова отменена' });
 });
 
-// ==================== ЗАБЛОКИРОВАТЬ СМЕНУ СЕКРЕТКИ НАВСЕГДА ====================
 router.post('/block-secret-change', requireAuth, async (req, res) => {
     await pool.query(`
         UPDATE users 
@@ -123,7 +142,6 @@ router.post('/block-secret-change', requireAuth, async (req, res) => {
     res.json({ success: true, message: 'Смена секретного слова заблокирована навсегда' });
 });
 
-// ==================== ПРИМЕНИТЬ ОТЛОЖЕННУЮ СМЕНУ ====================
 router.post('/apply-pending-secret', requireAuth, async (req, res) => {
     const u = await pool.query('SELECT * FROM users WHERE id = $1', [req.session.userId]);
     const user = u.rows[0];
@@ -131,7 +149,6 @@ router.post('/apply-pending-secret', requireAuth, async (req, res) => {
     if (!user.secret_change_pending || !user.pending_new_secret) {
         return res.status(400).json({ error: 'Нет отложенной смены' });
     }
-    
     if (new Date(user.secret_change_pending) > new Date()) {
         return res.status(400).json({ error: 'Ещё не прошло 24 часа' });
     }
@@ -147,53 +164,40 @@ router.post('/apply-pending-secret', requireAuth, async (req, res) => {
     res.json({ success: true, message: 'Секретное слово обновлено' });
 });
 
-// ==================== ЗАГРУЗКА АВАТАРКИ ====================
-router.post('/avatar', requireAuth, uploadAvatar.single('avatar'), async (req, res) => {
+// ==================== ЗАГРУЗКА АВАТАРКИ В CLOUDINARY ====================
+router.post('/avatar', requireAuth, upload.single('avatar'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
         
-        // Получаем старую аватарку чтобы удалить (если она не дефолтная)
-        const old = await pool.query('SELECT avatar FROM users WHERE id = $1', [req.session.userId]);
-        const oldAvatar = old.rows[0]?.avatar;
-        
-        // Новый URL — всегда через /uploads/avatars/
-        const newAvatarUrl = '/uploads/avatars/' + req.file.filename;
-        
-        // Обновляем в базе
-        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [newAvatarUrl, req.session.userId]);
-        
-        // Удаляем старую аватарку (если это была не дефолтная)
-        if (oldAvatar && oldAvatar.startsWith('/uploads/avatars/') && oldAvatar !== newAvatarUrl) {
-            const oldPath = path.join(__dirname, '..', oldAvatar);
-            fs.unlink(oldPath, (err) => {
-                if (err) console.log('Не удалось удалить старую аватарку:', err.message);
-            });
+        // Проверка что Cloudinary настроен
+        if (!process.env.CLOUDINARY_CLOUD_NAME) {
+            return res.status(500).json({ error: 'Cloudinary не настроен на сервере' });
         }
         
-        res.json({ success: true, avatar: newAvatarUrl });
+        // Загружаем в Cloudinary
+        const result = await uploadToCloudinary(req.file.buffer, req.session.userId);
+        const avatarUrl = result.secure_url;
+        
+        // Сохраняем ссылку в БД
+        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [avatarUrl, req.session.userId]);
+        
+        res.json({ success: true, avatar: avatarUrl });
     } catch (err) {
         console.error('Ошибка загрузки аватара:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: err.message || 'Ошибка загрузки' });
     }
 });
 
 // ==================== СБРОС АВАТАРКИ НА ДЕФОЛТНУЮ ====================
 router.post('/reset-avatar', requireAuth, async (req, res) => {
     try {
-        // Получаем текущую аватарку
-        const cur = await pool.query('SELECT avatar FROM users WHERE id = $1', [req.session.userId]);
-        const currentAvatar = cur.rows[0]?.avatar;
-        
-        // Устанавливаем дефолтную
-        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [DEFAULT_AVATAR, req.session.userId]);
-        
-        // Удаляем старый файл если это была загруженная аватарка
-        if (currentAvatar && currentAvatar.startsWith('/uploads/avatars/')) {
-            const oldPath = path.join(__dirname, '..', currentAvatar);
-            fs.unlink(oldPath, (err) => {
-                if (err) console.log('Не удалось удалить файл аватара:', err.message);
-            });
+        // Удаляем из Cloudinary
+        if (process.env.CLOUDINARY_CLOUD_NAME) {
+            await deleteFromCloudinary(`minzdrav_avatars/user_${req.session.userId}`);
         }
+        
+        // Ставим дефолтную
+        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [DEFAULT_AVATAR, req.session.userId]);
         
         res.json({ 
             success: true, 
