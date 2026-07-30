@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель — minzdrav.ru</title>
-    <link rel="icon" href="/img/logo.svg">
+    <link rel="icon" href="/img/logo.png">
     <link rel="stylesheet" href="/css/main.css">
     <style>
         body { background: var(--bg-main); min-height: 100vh; }
@@ -15,6 +15,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+        }
+        .admin-header-logo {
+            width: 54px;
+            height: 54px;
+            background: white;
+            border-radius: 12px;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .admin-header-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
         .admin-container {
             max-width: 1200px;
@@ -54,9 +71,7 @@
             box-shadow: var(--shadow);
             display: none;
         }
-        .admin-panel.active {
-            display: block;
-        }
+        .admin-panel.active { display: block; }
         .ticket-card, .user-card {
             background: var(--bg-main);
             border-radius: 10px;
@@ -76,10 +91,7 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        .ticket-id {
-            font-weight: 700;
-            color: var(--brand-blue);
-        }
+        .ticket-id { font-weight: 700; color: var(--brand-blue); }
         .ticket-status {
             padding: 4px 10px;
             border-radius: 12px;
@@ -122,10 +134,7 @@
             flex-wrap: wrap;
             gap: 12px;
         }
-        .user-info {
-            font-family: monospace;
-            font-size: 13px;
-        }
+        .user-info { font-family: monospace; font-size: 13px; }
         .user-email {
             color: var(--brand-blue-light);
             font-weight: 600;
@@ -155,9 +164,9 @@
 </head>
 <body>
     <div class="admin-header">
-        <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="width: 36px; height: 36px; background: white; border-radius: 8px; padding: 4px;">
-                <img src="/img/logo.svg" style="width: 100%;">
+        <div style="display: flex; align-items: center; gap: 14px;">
+            <div class="admin-header-logo">
+                <img src="/img/logo.png" alt="minzdrav">
             </div>
             <h1 style="font-size: 20px;">🛡️ Админ-панель minzdrav.ru</h1>
         </div>
@@ -171,7 +180,6 @@
             <button class="admin-tab" data-tab="watched">⚠️ Под наблюдением</button>
         </div>
 
-        <!-- Тикеты -->
         <div class="admin-panel active" id="ticketsPanel">
             <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
                 <h2>📮 Обращения в поддержку</h2>
@@ -186,7 +194,6 @@
             </div>
         </div>
 
-        <!-- Пользователи -->
         <div class="admin-panel" id="usersPanel">
             <h2 style="margin-bottom: 16px;">👥 Пользователи</h2>
             <input type="text" class="search-bar" id="userSearch" placeholder="🔍 Поиск по email или ID...">
@@ -195,7 +202,6 @@
             </div>
         </div>
 
-        <!-- Под наблюдением -->
         <div class="admin-panel" id="watchedPanel">
             <h2 style="margin-bottom: 16px;">⚠️ Пользователи под наблюдением</h2>
             <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">
