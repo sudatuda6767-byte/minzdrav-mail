@@ -1,0 +1,186 @@
+const express = require('express');
+const bcrypt = require('bcrypt');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const router = express.Router();
+const { pool } = require('../database/db');
+const { requireAuth } = require('../middleware/authCheck');
+
+// Загрузка аватарки
+const avatarStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'uploads/avatars';
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, req.session.userId + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+
+const uploadAvatar = multer({
+    storage: avatarStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        if (allowed.includes(file.mimetype)) cb(null, true);
+        else cb(new Error('Только фото (JPG, PNG, WEBP), без гифок'));
+    }
+});
+
+// ==================== СМЕНА ПАРОЛЯ ====================
+router.post('/change-password', requireAuth, async (req, res) => {
+    try {
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({ error: 'Заполните все поля' });
+        }
+        if (newPassword.length > 32) {
+            return res.status(400).json({ error: 'Пароль слишком длинный' });
+        }
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({ error: 'Пароли не совпадают' });
+        }
+
+        const user = await pool.query('SELECT password_hash FROM users WHERE id = $1', [req.session.userId]);
+        const valid = await bcrypt.compare(oldPassword, user.rows[0].password_hash);
+        if (!valid) return res.status(401).json({ error: 'Старый пароль неверный' });
+
+        const hash = await bcrypt.hash(newPassword, 10);
+        await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [hash, req.session.userId]);
+        res.json({ success: true, message: 'Пароль изменён' });
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ==================== ЗАПРОС НА СМЕНУ СЕКРЕТНОГО СЛОВА ====================
+router.post('/request-secret-change', requireAuth, async (req, res) => {
+    try {
+        const { password, newSecret } = req.body;
+
+        const user = await pool.query('SELECT * FROM users WHERE id = $1', [req.session.userId]);
+        const u = user.rows[0];
+
+        if (u.secret_change_blocked) {
+            return res.status(403).json({ error: 'Смена секретного слова заблокирована навсегда' });
+        }
+
+        const valid = await bcrypt.compare(password, u.password_hash);
+        if (!valid) return res.status(401).json({ error: 'Неверный пароль' });
+
+        if (!newSecret || newSecret.length > 32 || newSecret.length < 1) {
+            return res.status(400).json({ error: 'Некорректное секретное слово' });
+        }
+
+        const hash = await bcrypt.hash(newSecret.toLowerCase(), 10);
+        await pool.query(`
+            UPDATE users 
+            SET secret_change_pending = NOW() + INTERVAL '24 hours',
+                pending_new_secret = $1
+            WHERE id = $2
+        `, [hash, req.session.userId]);
+
+        res.json({ 
+            success: true, 
+            message: 'Смена запланирована через 24 часа. Можно отменить в настройках.',
+            applyAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка сервера' });
+    }
+});
+
+// ==================== ОТМЕНИТЬ СМЕНУ СЕКРЕТКИ ====================
+router.post('/cancel-secret-change', requireAuth, async (req, res) => {
+    await pool.query(`
+        UPDATE users SET secret_change_pending = NULL, pending_new_secret = NULL
+        WHERE id = $1
+    `, [req.session.userId]);
+    res.json({ success: true, message: 'Смена секретного слова отменена' });
+});
+
+// ==================== ЗАБЛОКИРОВАТЬ СМЕНУ СЕКРЕТКИ НАВСЕГДА ====================
+router.post('/block-secret-change', requireAuth, async (req, res) => {
+    await pool.query(`
+        UPDATE users 
+        SET secret_change_blocked = TRUE, 
+            secret_change_pending = NULL, 
+            pending_new_secret = NULL
+        WHERE id = $1
+    `, [req.session.userId]);
+    res.json({ success: true, message: 'Смена секретного слова заблокирована навсегда' });
+});
+
+// ==================== ПРИМЕНИТЬ ОТЛОЖЕННУЮ СМЕНУ ====================
+router.post('/apply-pending-secret', requireAuth, async (req, res) => {
+    const u = await pool.query('SELECT * FROM users WHERE id = $1', [req.session.userId]);
+    const user = u.rows[0];
+    
+    if (!user.secret_change_pending || !user.pending_new_secret) {
+        return res.status(400).json({ error: 'Нет отложенной смены' });
+    }
+    
+    if (new Date(user.secret_change_pending) > new Date()) {
+        return res.status(400).json({ error: 'Ещё не прошло 24 часа' });
+    }
+    
+    await pool.query(`
+        UPDATE users 
+        SET secret_word_hash = pending_new_secret,
+            pending_new_secret = NULL,
+            secret_change_pending = NULL
+        WHERE id = $1
+    `, [req.session.userId]);
+    
+    res.json({ success: true, message: 'Секретное слово обновлено' });
+});
+
+// ==================== ЗАГРУЗКА АВАТАРКИ ====================
+router.post('/avatar', requireAuth, uploadAvatar.single('avatar'), async (req, res) => {
+    try {
+        if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
+        const url = '/uploads/avatars/' + req.file.filename;
+        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [url, req.session.userId]);
+        res.json({ success: true, avatar: url });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// ==================== НАСТРОЙКИ ТЕМЫ ====================
+router.post('/theme', requireAuth, async (req, res) => {
+    const { theme, customColor } = req.body;
+    await pool.query(
+        'UPDATE users SET theme = $1, custom_color = $2 WHERE id = $3',
+        [theme || 'light', customColor || null, req.session.userId]
+    );
+    res.json({ success: true });
+});
+
+// ==================== ПОЛУЧИТЬ ИНФО О ПРОФИЛЕ ====================
+router.get('/info', requireAuth, async (req, res) => {
+    const r = await pool.query(`
+        SELECT id, unique_id, email, avatar, theme, custom_color, 
+               is_admin, secret_change_blocked, secret_change_pending, created_at
+        FROM users WHERE id = $1
+    `, [req.session.userId]);
+    
+    const u = r.rows[0];
+    res.json({
+        id: u.id,
+        uniqueId: u.unique_id,
+        email: u.email + '@minzdrav.ru',
+        avatar: u.avatar,
+        theme: u.theme,
+        customColor: u.custom_color,
+        isAdmin: u.is_admin,
+        secretBlocked: u.secret_change_blocked,
+        secretPending: u.secret_change_pending,
+        createdAt: u.created_at
+    });
+});
+
+module.exports = router;
