@@ -1,329 +1,283 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Настройки — minzdrav.ru</title>
-    <link rel="icon" href="/img/logo.png">
-    <link rel="stylesheet" href="/css/main.css">
-    <style>
-        .settings-layout { min-height: 100vh; background: var(--bg-main); }
-        .settings-header {
-            background: var(--brand-gradient);
-            color: white;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .settings-header-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-        .settings-header-logo {
-            width: 64px;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .settings-header-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
-        }
-        .settings-container {
-            max-width: 900px;
-            margin: 24px auto;
-            padding: 0 20px;
-        }
-        .settings-section {
-            background: var(--bg-panel);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-        .settings-section h2 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .settings-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .settings-row:last-child { border-bottom: none; }
-        .settings-label {
-            font-size: 14px;
-            color: var(--text-main);
-            font-weight: 500;
-        }
-        .settings-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 2px;
-        }
-        .avatar-block {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .avatar-preview {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 3px solid var(--brand-blue-light);
-            object-fit: cover;
-            background: white;
-        }
-        .avatar-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .avatar-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .id-display {
-            font-family: monospace;
-            font-size: 16px;
-            background: var(--bg-hover);
-            padding: 8px 14px;
-            border-radius: 8px;
-            filter: blur(4px);
-            transition: filter 0.3s;
-            cursor: pointer;
-            user-select: all;
-        }
-        .id-display.revealed { filter: blur(0); }
-        .theme-picker {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .theme-option {
-            padding: 12px 20px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .theme-option.active {
-            border-color: var(--brand-blue-light);
-            background: var(--bg-selected);
-        }
-        .color-picker-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            gap: 8px;
-            margin-top: 12px;
-        }
-        .color-option {
-            aspect-ratio: 1;
-            border-radius: 12px;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: transform 0.15s;
-        }
-        .color-option:hover { transform: scale(1.1); }
-        .color-option.selected {
-            border-color: var(--text-main);
-            transform: scale(1.05);
-        }
-        .pending-warning {
-            background: #FEF3C7;
-            border-left: 4px solid #F59E0B;
-            padding: 14px;
-            border-radius: 8px;
-            margin-top: 12px;
-            font-size: 13px;
-            color: #92400E;
-        }
-        [data-theme="dark"] .pending-warning {
-            background: rgba(245, 158, 11, 0.15);
-            color: #FCD34D;
-        }
-        .back-btn {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            padding: 8px 16px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .back-btn:hover { background: rgba(255,255,255,0.3); }
-    </style>
-</head>
-<body>
-    <div class="settings-layout">
-        <header class="settings-header">
-            <div class="settings-header-left">
-                <div class="settings-header-logo">
-                    <img src="/img/logo.png" alt="minzdrav">
-                </div>
-                <h1 style="font-size: 20px;">⚙️ Настройки</h1>
-            </div>
-            <a href="/mail" class="back-btn">← Назад к почте</a>
-        </header>
+let profileInfo = null;
 
-        <div class="settings-container">
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadProfile();
+    setupHandlers();
+});
+
+async function loadProfile() {
+    const res = await fetch('/api/profile/info', { credentials: 'include' });
+    if (res.status === 401) {
+        window.location.href = '/login';
+        return;
+    }
+    profileInfo = await res.json();
+    displayProfile();
+}
+
+function displayProfile() {
+    document.getElementById('userEmailDisplay').textContent = profileInfo.email;
+    document.getElementById('uniqueIdDisplay').textContent = profileInfo.uniqueId;
+    document.getElementById('createdAtDisplay').textContent = new Date(profileInfo.createdAt).toLocaleString('ru-RU');
+    
+    // Устанавливаем аватарку с защитой от битой ссылки
+    const avatarEl = document.getElementById('avatarPreview');
+    avatarEl.onerror = function() {
+        this.onerror = null;
+        this.src = '/img/default-avatar.png';
+    };
+    avatarEl.src = profileInfo.avatar || '/img/default-avatar.png';
+    
+    document.querySelectorAll('.theme-option').forEach(el => {
+        el.classList.toggle('active', el.dataset.theme === profileInfo.theme);
+    });
+    
+    if (profileInfo.customColor) {
+        document.querySelectorAll('.color-option').forEach(el => {
+            el.classList.toggle('selected', el.dataset.color === profileInfo.customColor);
+        });
+        document.getElementById('customColorInput').value = profileInfo.customColor;
+    }
+    
+    if (profileInfo.secretBlocked) {
+        document.getElementById('secretBlockedMsg').style.display = 'block';
+        document.getElementById('secretForm').style.display = 'none';
+    }
+    if (profileInfo.secretPending) {
+        document.getElementById('secretPendingMsg').style.display = 'block';
+        document.getElementById('pendingDate').textContent = new Date(profileInfo.secretPending).toLocaleString('ru-RU');
+    }
+}
+
+function setupHandlers() {
+    // Загрузка аватарки
+    document.getElementById('avatarInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Файл больше 5 МБ');
+            return;
+        }
+        if (file.type === 'image/gif') {
+            alert('GIF не допускаются');
+            return;
+        }
+        
+        const fd = new FormData();
+        fd.append('avatar', file);
+        
+        const res = await fetch('/api/profile/avatar', {
+            method: 'POST',
+            body: fd,
+            credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            // Обновляем аватарку с меткой времени чтобы браузер не кешировал старую
+            document.getElementById('avatarPreview').src = data.avatar + '?t=' + Date.now();
+            profileInfo.avatar = data.avatar;
+            showToast('✅ Аватарка обновлена и сохранена навсегда');
+        } else {
+            alert(data.error || 'Ошибка');
+        }
+    });
+    
+    // ⭐ КНОПКА СБРОСА АВАТАРКИ
+    document.getElementById('resetAvatarBtn').addEventListener('click', async () => {
+        if (!confirm('Сбросить аватарку на дефолтную?\nТекущая аватарка будет удалена безвозвратно.')) return;
+        
+        const res = await fetch('/api/profile/reset-avatar', {
+            method: 'POST',
+            credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            document.getElementById('avatarPreview').src = data.avatar + '?t=' + Date.now();
+            profileInfo.avatar = data.avatar;
+            showToast('✅ Аватарка сброшена на дефолтную');
+        } else {
+            alert(data.error || 'Ошибка');
+        }
+    });
+    
+    document.querySelectorAll('.theme-option').forEach(el => {
+        el.addEventListener('click', async () => {
+            const theme = el.dataset.theme;
+            document.querySelectorAll('.theme-option').forEach(x => x.classList.remove('active'));
+            el.classList.add('active');
+            applyTheme(theme, profileInfo.customColor);
             
-            <div class="settings-section">
-                <h2>👤 Профиль</h2>
-                
-                <div class="settings-row">
-                    <div class="avatar-block">
-                        <img src="/img/default-avatar.png" id="avatarPreview" class="avatar-preview" onerror="this.onerror=null; this.src='/img/default-avatar.png';">
-                        <div class="avatar-controls">
-                            <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" style="display:none;">
-                            <div class="avatar-buttons">
-                                <button class="btn" onclick="document.getElementById('avatarInput').click()">📷 Загрузить фото</button>
-                                <button class="btn btn-secondary" id="resetAvatarBtn">🔄 Сбросить</button>
-                            </div>
-                            <p class="hint">JPG, PNG, WEBP до 5 МБ. Без GIF.</p>
-                        </div>
-                    </div>
-                </div>
+            await fetch('/api/profile/theme', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ theme, customColor: profileInfo.customColor }),
+                credentials: 'include'
+            });
+            profileInfo.theme = theme;
+            showToast('✅ Тема изменена');
+        });
+    });
+    
+    document.querySelectorAll('.color-option').forEach(el => {
+        el.addEventListener('click', async () => {
+            const color = el.dataset.color;
+            document.querySelectorAll('.color-option').forEach(x => x.classList.remove('selected'));
+            el.classList.add('selected');
+            profileInfo.customColor = color;
+            applyTheme(profileInfo.theme, color);
+            await saveTheme();
+            showToast('✅ Цвет изменён');
+        });
+    });
+    
+    document.getElementById('customColorInput').addEventListener('change', async (e) => {
+        const color = e.target.value;
+        document.querySelectorAll('.color-option').forEach(x => x.classList.remove('selected'));
+        profileInfo.customColor = color;
+        applyTheme(profileInfo.theme, color);
+        await saveTheme();
+        showToast('✅ Свой цвет применён');
+    });
+    
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmNewPassword').value;
+        
+        if (newPassword !== confirmPassword) {
+            alert('Пароли не совпадают');
+            return;
+        }
+        if (newPassword.length > 32) {
+            alert('Пароль слишком длинный (макс. 32 символа)');
+            return;
+        }
+        
+        const res = await fetch('/api/profile/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oldPassword, newPassword, confirmPassword }),
+            credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast('✅ ' + data.message);
+            document.getElementById('passwordForm').reset();
+        } else {
+            alert(data.error || 'Ошибка');
+        }
+    });
+    
+    document.getElementById('secretForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const password = document.getElementById('secretChangePassword').value;
+        const newSecret = document.getElementById('newSecret').value;
+        
+        if (newSecret.length > 32) {
+            alert('Секретное слово слишком длинное');
+            return;
+        }
+        
+        if (!confirm('Запланировать смену секретного слова через 24 часа?\nМожно отменить в любой момент до истечения срока.')) return;
+        
+        const res = await fetch('/api/profile/request-secret-change', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ password, newSecret }),
+            credentials: 'include'
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            showToast('✅ ' + data.message);
+            document.getElementById('secretForm').reset();
+            await loadProfile();
+        } else {
+            alert(data.error || 'Ошибка');
+        }
+    });
+}
 
-                <div class="settings-row">
-                    <div>
-                        <div class="settings-label">📧 Ваша почта</div>
-                        <div class="settings-desc" id="userEmailDisplay">...</div>
-                    </div>
-                </div>
+async function saveTheme() {
+    await fetch('/api/profile/theme', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            theme: profileInfo.theme, 
+            customColor: profileInfo.customColor 
+        }),
+        credentials: 'include'
+    });
+}
 
-                <div class="settings-row">
-                    <div>
-                        <div class="settings-label">🆔 Ваш уникальный ID</div>
-                        <div class="settings-desc">Никогда не меняется. Нажмите чтобы показать/скопировать</div>
-                    </div>
-                    <div class="id-display" id="uniqueIdDisplay" onclick="toggleId()">•••••••••••••••••••</div>
-                </div>
+async function cancelSecretChange() {
+    if (!confirm('Отменить запланированную смену секретного слова?')) return;
+    
+    const res = await fetch('/api/profile/cancel-secret-change', {
+        method: 'POST',
+        credentials: 'include'
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+        showToast('✅ ' + data.message);
+        document.getElementById('secretPendingMsg').style.display = 'none';
+        await loadProfile();
+    }
+}
 
-                <div class="settings-row">
-                    <div>
-                        <div class="settings-label">📅 Дата регистрации</div>
-                        <div class="settings-desc" id="createdAtDisplay">...</div>
-                    </div>
-                </div>
-            </div>
+async function blockSecretForever() {
+    const confirm1 = confirm('⚠️ ВНИМАНИЕ!\n\nПосле блокировки НИКТО и НИКОГДА не сможет сменить секретное слово, даже вы!\n\nВы уверены?');
+    if (!confirm1) return;
+    
+    const confirm2 = prompt('Для подтверждения введите слово: ЗАБЛОКИРОВАТЬ');
+    if (confirm2 !== 'ЗАБЛОКИРОВАТЬ') {
+        alert('Отменено');
+        return;
+    }
+    
+    const res = await fetch('/api/profile/block-secret-change', {
+        method: 'POST',
+        credentials: 'include'
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+        showToast('🔒 ' + data.message);
+        await loadProfile();
+    }
+}
 
-            <div class="settings-section">
-                <h2>🎨 Внешний вид</h2>
-                
-                <div class="settings-row" style="flex-direction: column; align-items: flex-start;">
-                    <div class="settings-label" style="margin-bottom: 12px;">Тема оформления</div>
-                    <div class="theme-picker">
-                        <div class="theme-option" data-theme="light">☀️ Светлая</div>
-                        <div class="theme-option" data-theme="dark">🌙 Тёмная</div>
-                    </div>
-                </div>
+function toggleId() {
+    document.getElementById('uniqueIdDisplay').classList.toggle('revealed');
+}
 
-                <div class="settings-row" style="flex-direction: column; align-items: flex-start;">
-                    <div class="settings-label" style="margin-bottom: 4px;">Основной цвет</div>
-                    <div class="settings-desc" style="margin-bottom: 12px;">Выберите свой любимый цвет</div>
-                    <div class="color-picker-grid" id="colorPicker">
-                        <div class="color-option" data-color="#3B82F6" style="background:#3B82F6"></div>
-                        <div class="color-option" data-color="#10B981" style="background:#10B981"></div>
-                        <div class="color-option" data-color="#8B5CF6" style="background:#8B5CF6"></div>
-                        <div class="color-option" data-color="#EC4899" style="background:#EC4899"></div>
-                        <div class="color-option" data-color="#F59E0B" style="background:#F59E0B"></div>
-                        <div class="color-option" data-color="#EF4444" style="background:#EF4444"></div>
-                        <div class="color-option" data-color="#06B6D4" style="background:#06B6D4"></div>
-                        <div class="color-option" data-color="#84CC16" style="background:#84CC16"></div>
-                        <div class="color-option" data-color="#1E3A8A" style="background:#1E3A8A"></div>
-                        <div class="color-option" data-color="#7C3AED" style="background:#7C3AED"></div>
-                    </div>
-                    <input type="color" id="customColorInput" style="margin-top: 12px; cursor: pointer;">
-                </div>
-            </div>
-
-            <div class="settings-section">
-                <h2>🔑 Пароль</h2>
-                
-                <form id="passwordForm">
-                    <div class="form-group">
-                        <label>Текущий пароль</label>
-                        <input type="password" id="oldPassword" required maxlength="32">
-                    </div>
-                    <div class="form-group">
-                        <label>Новый пароль</label>
-                        <input type="password" id="newPassword" required maxlength="32">
-                    </div>
-                    <div class="form-group">
-                        <label>Повторите новый пароль</label>
-                        <input type="password" id="confirmNewPassword" required maxlength="32">
-                    </div>
-                    <button type="submit" class="btn">💾 Сменить пароль</button>
-                </form>
-            </div>
-
-            <div class="settings-section">
-                <h2>🔐 Секретное слово</h2>
-                
-                <div id="secretBlockedMsg" style="display:none;">
-                    <div class="pending-warning">
-                        🚫 Смена секретного слова заблокирована навсегда. Изменить нельзя.
-                    </div>
-                </div>
-
-                <div id="secretPendingMsg" style="display:none;">
-                    <div class="pending-warning">
-                        ⏳ Запланирована смена секретного слова.<br>
-                        Будет применена: <strong id="pendingDate"></strong><br><br>
-                        <button class="btn btn-secondary" onclick="cancelSecretChange()" style="margin-right: 8px;">❌ Отменить смену</button>
-                    </div>
-                </div>
-
-                <form id="secretForm">
-                    <p class="hint" style="margin-bottom: 12px;">⚠️ Для смены секретного слова требуется 24 часа ожидания. Это защищает вас от взлома.</p>
-                    <div class="form-group">
-                        <label>Ваш текущий пароль</label>
-                        <input type="password" id="secretChangePassword" required maxlength="32">
-                    </div>
-                    <div class="form-group">
-                        <label>Новое секретное слово</label>
-                        <input type="text" id="newSecret" required maxlength="32">
-                    </div>
-                    <button type="submit" class="btn">📅 Запланировать смену</button>
-                </form>
-
-                <div class="settings-row" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border);">
-                    <div>
-                        <div class="settings-label" style="color: var(--danger);">⚠️ Заблокировать смену навсегда</div>
-                        <div class="settings-desc">Никто и никогда не сможет сменить секретное слово, даже вы. Действие необратимо.</div>
-                    </div>
-                    <button class="btn btn-danger" onclick="blockSecretForever()">🔒 Заблокировать</button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <script src="/js/theme.js"></script>
-    <script src="/js/settings.js"></script>
-</body>
-</html>
+function showToast(msg) {
+    const existing = document.getElementById('toast-notify');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.id = 'toast-notify';
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: var(--bg-panel);
+        color: var(--text-main);
+        padding: 14px 20px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        border-left: 4px solid var(--success);
+        font-size: 14px;
+        z-index: 9999;
+        animation: slideUp 0.3s;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+}
