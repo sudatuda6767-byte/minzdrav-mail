@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обращение в поддержку — minzdrav.ru</title>
+    <link rel="icon" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box" style="max-width: 560px;">
+            <div class="auth-logo">
+                <img src="/img/logo.svg" alt="minzdrav.ru">
+                <h1>Техническая поддержка</h1>
+            </div>
+            <p class="auth-subtitle">
+                Создание запроса на восстановление доступа<br>
+                <small style="color: var(--text-muted);">
+                    Обращение отправится: tekhnicheskaya-podderzhka-pochty@minzdrav.ru
+                </small>
+            </p>
+
+            <div class="error-message" id="errorMsg"></div>
+            <div class="success-message" id="successMsg"></div>
+
+            <form id="ticketForm">
+                <div class="form-group">
+                    <label for="lostEmail">Введите вашу почту, от которой вы утеряли доступ</label>
+                    <div class="email-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="lostEmail" 
+                            placeholder="название"
+                            required
+                            maxlength="32"
+                        >
+                        <span class="email-suffix">@minzdrav.ru</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">
+                        Опишите подробно как вы утеряли доступ
+                    </label>
+                    <textarea 
+                        id="description" 
+                        placeholder="Для оперативности и помощи в этой ситуации техническим специалистам, опишите ключевые моменты в подробностях..."
+                        required
+                        rows="8"
+                        minlength="20"
+                    ></textarea>
+                    <p class="hint">Минимум 20 символов. Можно приложить скриншоты позже в переписке.</p>
+                </div>
+
+                <button type="submit" class="btn btn-full">Отправить обращение</button>
+            </form>
+
+            <div class="auth-links">
+                <a href="/login">← Вернуться ко входу</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+</body>
+</html>
