@@ -7,7 +7,6 @@
 }
 
 :root {
-    /* Основные цвета бренда minzdrav.ru */
     --brand-blue: #1E3A8A;
     --brand-blue-light: #3B82F6;
     --brand-green: #10B981;
@@ -15,7 +14,6 @@
     --brand-gradient: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
     --brand-gradient-hover: linear-gradient(135deg, #2563EB 0%, #059669 100%);
     
-    /* Светлая тема (по умолчанию) */
     --bg-main: #F0F9FF;
     --bg-panel: #FFFFFF;
     --bg-hover: #E0F2FE;
@@ -33,7 +31,6 @@
     --info: #3B82F6;
 }
 
-/* Тёмная тема */
 [data-theme="dark"] {
     --bg-main: #0F172A;
     --bg-panel: #1E293B;
@@ -55,7 +52,7 @@ body {
     transition: background 0.3s;
 }
 
-/* ==================== АВТОРИЗАЦИЯ / РЕГИСТРАЦИЯ ==================== */
+/* ==================== АВТОРИЗАЦИЯ ==================== */
 .auth-container {
     min-height: 100vh;
     display: flex;
@@ -90,8 +87,11 @@ body {
 }
 
 .auth-logo img {
-    width: 80px;
-    height: 80px;
+    width: 140px;
+    height: 140px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
 }
 
 .auth-logo h1 {
@@ -190,13 +190,8 @@ body {
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.btn:active {
-    transform: translateY(0);
-}
-
-.btn-full {
-    width: 100%;
-}
+.btn:active { transform: translateY(0); }
+.btn-full { width: 100%; }
 
 .btn-secondary {
     background: var(--bg-hover);
@@ -239,14 +234,8 @@ body {
     font-weight: 500;
 }
 
-.auth-links a:hover {
-    text-decoration: underline;
-}
-
-.auth-links .divider {
-    color: var(--text-muted);
-    margin: 0 8px;
-}
+.auth-links a:hover { text-decoration: underline; }
+.auth-links .divider { color: var(--text-muted); margin: 0 8px; }
 
 .hint {
     font-size: 12px;
@@ -305,11 +294,11 @@ body {
     margin: 0;
 }
 
-/* ==================== ИНТЕРФЕЙС ПОЧТЫ ==================== */
+/* ==================== ПОЧТА ==================== */
 .mail-layout {
     display: grid;
     grid-template-columns: 260px 1fr;
-    grid-template-rows: 60px 1fr;
+    grid-template-rows: 70px 1fr;
     height: 100vh;
     overflow: hidden;
 }
@@ -329,28 +318,30 @@ body {
 .mail-header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
 }
 
 .mail-header-logo {
-    width: 36px;
-    height: 36px;
+    width: 54px;
+    height: 54px;
     background: white;
-    border-radius: 8px;
+    border-radius: 12px;
     padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .mail-header-logo img {
     width: 100%;
     height: 100%;
     object-fit: contain;
+    display: block;
 }
 
 .mail-header-title {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
 }
 
@@ -414,9 +405,7 @@ body {
     gap: 6px;
 }
 
-.header-btn:hover {
-    background: rgba(255,255,255,0.25);
-}
+.header-btn:hover { background: rgba(255,255,255,0.25); }
 
 .user-menu {
     position: relative;
@@ -424,8 +413,8 @@ body {
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     border: 2px solid rgba(255,255,255,0.4);
     object-fit: cover;
@@ -434,7 +423,7 @@ body {
 
 .user-dropdown {
     position: absolute;
-    top: 50px;
+    top: 54px;
     right: 0;
     background: var(--bg-panel);
     border-radius: 12px;
@@ -445,9 +434,7 @@ body {
     z-index: 100;
 }
 
-.user-dropdown.show {
-    display: block;
-}
+.user-dropdown.show { display: block; }
 
 .user-dropdown-header {
     padding: 12px;
@@ -487,7 +474,6 @@ body {
     background: var(--bg-hover);
 }
 
-/* ==================== БОКОВАЯ ПАНЕЛЬ ==================== */
 .mail-sidebar {
     background: var(--bg-panel);
     border-right: 1px solid var(--border);
@@ -519,9 +505,7 @@ body {
     box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
 }
 
-.folder-list {
-    list-style: none;
-}
+.folder-list { list-style: none; }
 
 .folder-item {
     display: flex;
@@ -536,9 +520,7 @@ body {
     border-left: 3px solid transparent;
 }
 
-.folder-item:hover {
-    background: var(--bg-hover);
-}
+.folder-item:hover { background: var(--bg-hover); }
 
 .folder-item.active {
     background: var(--bg-selected);
@@ -551,11 +533,7 @@ body {
     color: var(--brand-green-light);
 }
 
-.folder-icon {
-    font-size: 18px;
-    width: 22px;
-    text-align: center;
-}
+.folder-icon { font-size: 18px; width: 22px; text-align: center; }
 
 .folder-count {
     margin-left: auto;
@@ -569,9 +547,7 @@ body {
     text-align: center;
 }
 
-.folder-count.zero {
-    display: none;
-}
+.folder-count.zero { display: none; }
 
 .sidebar-section {
     margin-top: 16px;
@@ -613,7 +589,6 @@ body {
     text-decoration: none;
 }
 
-/* ==================== СПИСОК ПИСЕМ ==================== */
 .mail-content {
     display: grid;
     grid-template-columns: 400px 1fr;
@@ -671,13 +646,8 @@ body {
     position: relative;
 }
 
-.email-item:hover {
-    background: var(--bg-hover);
-}
-
-.email-item.selected {
-    background: var(--bg-selected);
-}
+.email-item:hover { background: var(--bg-hover); }
+.email-item.selected { background: var(--bg-selected); }
 
 .email-item.unread {
     background: rgba(59, 130, 246, 0.04);
@@ -723,10 +693,7 @@ body {
     object-fit: cover;
 }
 
-.email-body {
-    flex: 1;
-    min-width: 0;
-}
+.email-body { flex: 1; min-width: 0; }
 
 .email-from {
     font-size: 14px;
@@ -779,7 +746,6 @@ body {
 .badge-attachment { background: #E0E7FF; color: #4338CA; }
 .badge-label { background: var(--brand-blue-light); color: white; }
 
-/* ==================== ПРОСМОТР ПИСЬМА ==================== */
 .email-view {
     overflow-y: auto;
     background: var(--bg-panel);
@@ -797,10 +763,11 @@ body {
 }
 
 .empty-view img {
-    width: 120px;
-    height: 120px;
-    opacity: 0.5;
+    width: 160px;
+    height: 160px;
+    opacity: 0.6;
     margin-bottom: 16px;
+    object-fit: contain;
 }
 
 .empty-view h2 {
@@ -834,9 +801,7 @@ body {
     font-size: 18px;
 }
 
-.email-view-info {
-    flex: 1;
-}
+.email-view-info { flex: 1; }
 
 .email-view-from {
     font-weight: 600;
@@ -859,6 +824,7 @@ body {
     display: flex;
     gap: 8px;
     margin-bottom: 16px;
+    flex-wrap: wrap;
 }
 
 .unwanted-warning {
@@ -917,24 +883,11 @@ body {
     transition: background 0.15s;
 }
 
-.attachment-item:hover {
-    background: var(--bg-hover);
-}
+.attachment-item:hover { background: var(--bg-hover); }
+.attachment-icon { font-size: 22px; }
+.attachment-info { flex: 1; }
+.attachment-size { font-size: 11px; color: var(--text-muted); }
 
-.attachment-icon {
-    font-size: 22px;
-}
-
-.attachment-info {
-    flex: 1;
-}
-
-.attachment-size {
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-/* ==================== МОДАЛЬНОЕ ОКНО НАПИСАНИЯ ==================== */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -978,9 +931,7 @@ body {
     border-radius: 16px 16px 0 0;
 }
 
-.modal-header h2 {
-    font-size: 18px;
-}
+.modal-header h2 { font-size: 18px; }
 
 .modal-close {
     background: transparent;
@@ -992,9 +943,7 @@ body {
     line-height: 1;
 }
 
-.modal-body {
-    padding: 20px;
-}
+.modal-body { padding: 20px; }
 
 .compose-field {
     display: flex;
@@ -1103,58 +1052,27 @@ body {
     font-size: 14px;
 }
 
-/* ==================== АДАПТИВНОСТЬ ==================== */
 @media (max-width: 900px) {
     .mail-layout {
         grid-template-columns: 60px 1fr;
     }
-    
-    .mail-sidebar {
-        overflow: visible;
-    }
-    
-    .folder-item span:not(.folder-icon):not(.folder-count) {
-        display: none;
-    }
-    
-    .compose-btn span:not(.folder-icon) {
-        display: none;
-    }
-    
-    .site-btn span:not(.folder-icon) {
-        display: none;
-    }
-    
-    .sidebar-section {
-        display: none;
-    }
-    
-    .mail-content {
-        grid-template-columns: 1fr;
-    }
-    
-    .email-view {
-        display: none;
-    }
-    
+    .mail-sidebar { overflow: visible; }
+    .folder-item span:not(.folder-icon):not(.folder-count) { display: none; }
+    .compose-btn span:not(.folder-icon) { display: none; }
+    .site-btn span:not(.folder-icon) { display: none; }
+    .sidebar-section { display: none; }
+    .mail-content { grid-template-columns: 1fr; }
+    .email-view { display: none; }
     .email-view.show-mobile {
         display: block;
         position: fixed;
-        inset: 60px 0 0 0;
+        inset: 70px 0 0 0;
         z-index: 20;
     }
-    
-    .mail-header-search {
-        display: none;
-    }
-    
-    .header-btn span {
-        display: none;
-    }
+    .mail-header-search { display: none; }
+    .header-btn span { display: none; }
 }
 
 @media (max-width: 500px) {
-    .auth-box {
-        padding: 24px;
-    }
+    .auth-box { padding: 24px; }
 }
