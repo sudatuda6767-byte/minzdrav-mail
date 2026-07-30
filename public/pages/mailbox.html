@@ -4,17 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Почта — minzdrav.ru</title>
-    <link rel="icon" href="/img/logo.svg">
+    <link rel="icon" href="/img/logo.png">
     <link rel="stylesheet" href="/css/main.css">
 </head>
 <body>
     <div class="mail-layout">
         
-        <!-- ШАПКА -->
         <header class="mail-header">
             <div class="mail-header-left">
                 <div class="mail-header-logo">
-                    <img src="/img/logo.svg" alt="minzdrav.ru">
+                    <img src="/img/logo.png" alt="minzdrav.ru">
                 </div>
                 <div class="mail-header-title">minzdrav.ru</div>
             </div>
@@ -31,7 +30,7 @@
                 </button>
 
                 <div class="user-menu" id="userMenuBtn">
-                    <img class="user-avatar" id="headerAvatar" src="/img/default-avatar.svg" alt="Профиль">
+                    <img class="user-avatar" id="headerAvatar" src="/img/default-avatar.png" alt="Профиль">
                     
                     <div class="user-dropdown" id="userDropdown">
                         <div class="user-dropdown-header">
@@ -46,7 +45,6 @@
             </div>
         </header>
 
-        <!-- БОКОВАЯ ПАНЕЛЬ -->
         <aside class="mail-sidebar">
             <button class="compose-btn" id="composeBtn">
                 <span class="folder-icon">✏️</span>
@@ -110,10 +108,8 @@
             </a>
         </aside>
 
-        <!-- КОНТЕНТ -->
         <main class="mail-content">
             
-            <!-- Список писем -->
             <section class="email-list">
                 <div class="email-list-header">
                     <h2 id="folderTitle">Все ящики</h2>
@@ -125,7 +121,6 @@
                     <button class="icon-btn" id="refreshBtn" title="Обновить">🔄</button>
                 </div>
 
-                <!-- Панель фильтров -->
                 <div id="filtersPanel" style="display:none; padding: 12px 16px; background: var(--bg-hover); border-bottom: 1px solid var(--border);">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
                         <input type="date" id="filterDateFrom" placeholder="От" style="padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-panel); color: var(--text-main);">
@@ -145,10 +140,9 @@
                 </div>
             </section>
 
-            <!-- Просмотр письма -->
             <section class="email-view" id="emailView">
                 <div class="empty-view">
-                    <img src="/img/logo.svg" alt="minzdrav">
+                    <img src="/img/logo.png" alt="minzdrav">
                     <h2>Выберите письмо</h2>
                     <p>Здесь появится содержимое выбранного письма</p>
                 </div>
@@ -156,7 +150,6 @@
         </main>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО НАПИСАНИЯ ПИСЬМА -->
     <div class="modal-overlay" id="composeModal">
         <div class="modal">
             <div class="modal-header">
