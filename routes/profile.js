@@ -14,7 +14,7 @@ cloudinary.config({
     secure: true
 });
 
-const DEFAULT_AVATAR = '/img/default-avatar.png';
+const DEFAULT_AVATAR = '/img/default-avatar.svg';
 
 // Загрузка через memory (буфер)
 const upload = multer({
