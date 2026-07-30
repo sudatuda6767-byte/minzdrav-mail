@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Восстановление доступа — minzdrav.ru</title>
+    <link rel="icon" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <img src="/img/logo.svg" alt="minzdrav.ru">
+                <h1>minzdrav.ru</h1>
+            </div>
+            <p class="auth-subtitle">Восстановление доступа</p>
+
+            <div class="error-message" id="errorMsg"></div>
+            <div class="success-message" id="successMsg"></div>
+
+            <form id="recoveryForm">
+                <div class="form-group">
+                    <label for="email">Введите вашу почту</label>
+                    <div class="email-input-wrapper">
+                        <input 
+                            type="text" 
+                            id="email" 
+                            placeholder="название"
+                            required
+                            maxlength="32"
+                        >
+                        <span class="email-suffix">@minzdrav.ru</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="secretWord">Введите ваше секретное слово</label>
+                    <input 
+                        type="text" 
+                        id="secretWord" 
+                        placeholder="Секретное слово"
+                        required
+                        maxlength="32"
+                    >
+                    <p class="hint">Указывали при регистрации</p>
+                </div>
+
+                <button type="submit" class="btn btn-full">Восстановить доступ</button>
+            </form>
+
+            <div class="auth-links">
+                <a href="/ticket">Вы забыли секретное слово?</a>
+            </div>
+            <div class="auth-links" style="margin-top: 8px;">
+                <a href="/login">← Вернуться ко входу</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+</body>
+</html>
