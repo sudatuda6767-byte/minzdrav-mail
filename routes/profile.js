@@ -7,15 +7,24 @@ const router = express.Router();
 const { pool } = require('../database/db');
 const { requireAuth } = require('../middleware/authCheck');
 
+// ⚠️ ВАЖНО: аватарки сохраняем в постоянную папку
+const AVATAR_DIR = path.join(__dirname, '..', 'uploads', 'avatars');
+if (!fs.existsSync(AVATAR_DIR)) {
+    fs.mkdirSync(AVATAR_DIR, { recursive: true });
+}
+
+const DEFAULT_AVATAR = '/img/default-avatar.png';
+
 // Загрузка аватарки
 const avatarStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        const dir = 'uploads/avatars';
-        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-        cb(null, dir);
+        cb(null, AVATAR_DIR);
     },
     filename: (req, file, cb) => {
-        cb(null, req.session.userId + '-' + Date.now() + path.extname(file.originalname));
+        // Уникальное имя: user_ID_timestamp.ext
+        const ext = path.extname(file.originalname).toLowerCase() || '.png';
+        const filename = `user_${req.session.userId}_${Date.now()}${ext}`;
+        cb(null, filename);
     }
 });
 
@@ -23,7 +32,7 @@ const uploadAvatar = multer({
     storage: avatarStorage,
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
-        const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+        const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
         if (allowed.includes(file.mimetype)) cb(null, true);
         else cb(new Error('Только фото (JPG, PNG, WEBP), без гифок'));
     }
@@ -142,11 +151,58 @@ router.post('/apply-pending-secret', requireAuth, async (req, res) => {
 router.post('/avatar', requireAuth, uploadAvatar.single('avatar'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'Файл не загружен' });
-        const url = '/uploads/avatars/' + req.file.filename;
-        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [url, req.session.userId]);
-        res.json({ success: true, avatar: url });
+        
+        // Получаем старую аватарку чтобы удалить (если она не дефолтная)
+        const old = await pool.query('SELECT avatar FROM users WHERE id = $1', [req.session.userId]);
+        const oldAvatar = old.rows[0]?.avatar;
+        
+        // Новый URL — всегда через /uploads/avatars/
+        const newAvatarUrl = '/uploads/avatars/' + req.file.filename;
+        
+        // Обновляем в базе
+        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [newAvatarUrl, req.session.userId]);
+        
+        // Удаляем старую аватарку (если это была не дефолтная)
+        if (oldAvatar && oldAvatar.startsWith('/uploads/avatars/') && oldAvatar !== newAvatarUrl) {
+            const oldPath = path.join(__dirname, '..', oldAvatar);
+            fs.unlink(oldPath, (err) => {
+                if (err) console.log('Не удалось удалить старую аватарку:', err.message);
+            });
+        }
+        
+        res.json({ success: true, avatar: newAvatarUrl });
     } catch (err) {
+        console.error('Ошибка загрузки аватара:', err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// ==================== СБРОС АВАТАРКИ НА ДЕФОЛТНУЮ ====================
+router.post('/reset-avatar', requireAuth, async (req, res) => {
+    try {
+        // Получаем текущую аватарку
+        const cur = await pool.query('SELECT avatar FROM users WHERE id = $1', [req.session.userId]);
+        const currentAvatar = cur.rows[0]?.avatar;
+        
+        // Устанавливаем дефолтную
+        await pool.query('UPDATE users SET avatar = $1 WHERE id = $2', [DEFAULT_AVATAR, req.session.userId]);
+        
+        // Удаляем старый файл если это была загруженная аватарка
+        if (currentAvatar && currentAvatar.startsWith('/uploads/avatars/')) {
+            const oldPath = path.join(__dirname, '..', currentAvatar);
+            fs.unlink(oldPath, (err) => {
+                if (err) console.log('Не удалось удалить файл аватара:', err.message);
+            });
+        }
+        
+        res.json({ 
+            success: true, 
+            message: 'Аватарка сброшена на дефолтную',
+            avatar: DEFAULT_AVATAR
+        });
+    } catch (err) {
+        console.error('Ошибка сброса аватара:', err);
+        res.status(500).json({ error: 'Ошибка сервера' });
     }
 });
 
@@ -173,7 +229,7 @@ router.get('/info', requireAuth, async (req, res) => {
         id: u.id,
         uniqueId: u.unique_id,
         email: u.email + '@minzdrav.ru',
-        avatar: u.avatar,
+        avatar: u.avatar || DEFAULT_AVATAR,
         theme: u.theme,
         customColor: u.custom_color,
         isAdmin: u.is_admin,
