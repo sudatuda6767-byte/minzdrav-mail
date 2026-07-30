@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Почта — minzdrav.ru</title>
+    <link rel="icon" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <div class="mail-layout">
+        
+        <!-- ШАПКА -->
+        <header class="mail-header">
+            <div class="mail-header-left">
+                <div class="mail-header-logo">
+                    <img src="/img/logo.svg" alt="minzdrav.ru">
+                </div>
+                <div class="mail-header-title">minzdrav.ru</div>
+            </div>
+
+            <div class="mail-header-search">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по письмам...">
+                <button id="filtersToggle" title="Фильтры">⚙️</button>
+            </div>
+
+            <div class="mail-header-right">
+                <button class="header-btn" id="themeToggle" title="Сменить тему">
+                    <span id="themeIcon">🌙</span>
+                    <span>Тема</span>
+                </button>
+
+                <div class="user-menu" id="userMenuBtn">
+                    <img class="user-avatar" id="headerAvatar" src="/img/default-avatar.svg" alt="Профиль">
+                    
+                    <div class="user-dropdown" id="userDropdown">
+                        <div class="user-dropdown-header">
+                            <div class="name" id="userDropdownName">Загрузка...</div>
+                            <div class="email" id="userDropdownEmail">...</div>
+                        </div>
+                        <a href="/settings">⚙️ Настройки</a>
+                        <a href="/admin" id="adminLink" style="display:none;">🛡️ Админ-панель</a>
+                        <button id="logoutBtn">🚪 Выйти</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- БОКОВАЯ ПАНЕЛЬ -->
+        <aside class="mail-sidebar">
+            <button class="compose-btn" id="composeBtn">
+                <span class="folder-icon">✏️</span>
+                <span>Написать</span>
+            </button>
+
+            <ul class="folder-list" id="folderList">
+                <li class="folder-item active" data-folder="all">
+                    <span class="folder-icon">📥</span>
+                    <span>Все ящики</span>
+                    <span class="folder-count zero" id="count-all">0</span>
+                </li>
+                <li class="folder-item" data-folder="inbox">
+                    <span class="folder-icon">📨</span>
+                    <span>Входящие</span>
+                    <span class="folder-count zero" id="count-inbox">0</span>
+                </li>
+                <li class="folder-item" data-folder="sent">
+                    <span class="folder-icon">📤</span>
+                    <span>Отправленные</span>
+                </li>
+                <li class="folder-item" data-folder="drafts">
+                    <span class="folder-icon">📝</span>
+                    <span>Черновики</span>
+                </li>
+                <li class="folder-item" data-folder="spam">
+                    <span class="folder-icon">🚫</span>
+                    <span>Спам</span>
+                </li>
+                <li class="folder-item" data-folder="unwanted">
+                    <span class="folder-icon">⚠️</span>
+                    <span>Нежелательные письма</span>
+                </li>
+                <li class="folder-item" data-folder="trash">
+                    <span class="folder-icon">🗑️</span>
+                    <span>Корзина</span>
+                </li>
+            </ul>
+
+            <div class="sidebar-section">
+                <span>Мои папки</span>
+                <button id="addFolderBtn" title="Создать папку">+</button>
+            </div>
+
+            <ul class="folder-list" id="customFolders"></ul>
+
+            <div class="sidebar-section">
+                <span>Поддержка</span>
+            </div>
+
+            <ul class="folder-list">
+                <li class="folder-item" id="supportBtn">
+                    <span class="folder-icon">🛠️</span>
+                    <span>Техническая поддержка</span>
+                </li>
+            </ul>
+
+            <a href="#" class="site-btn" id="siteBtn">
+                <span class="folder-icon">🌐</span>
+                <span>На сайт</span>
+            </a>
+        </aside>
+
+        <!-- КОНТЕНТ -->
+        <main class="mail-content">
+            
+            <!-- Список писем -->
+            <section class="email-list">
+                <div class="email-list-header">
+                    <h2 id="folderTitle">Все ящики</h2>
+                    <button class="icon-btn" id="selectAllBtn" title="Выделить все">☑️</button>
+                    <button class="icon-btn" id="markReadBtn" title="Прочитать">👁️</button>
+                    <button class="icon-btn" id="starBtn" title="Пометить звездой">⭐</button>
+                    <button class="icon-btn" id="moveToSpamBtn" title="В спам">🚫</button>
+                    <button class="icon-btn" id="deleteBtn" title="Удалить">🗑️</button>
+                    <button class="icon-btn" id="refreshBtn" title="Обновить">🔄</button>
+                </div>
+
+                <!-- Панель фильтров -->
+                <div id="filtersPanel" style="display:none; padding: 12px 16px; background: var(--bg-hover); border-bottom: 1px solid var(--border);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+                        <input type="date" id="filterDateFrom" placeholder="От" style="padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-panel); color: var(--text-main);">
+                        <input type="date" id="filterDateTo" placeholder="До" style="padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-panel); color: var(--text-main);">
+                    </div>
+                    <input type="text" id="filterFrom" placeholder="От кого (имя@minzdrav.ru)" style="width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-panel); color: var(--text-main); margin-bottom: 8px;">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" id="applyFilters" style="flex: 1; padding: 8px;">Применить</button>
+                        <button class="btn btn-secondary" id="resetFilters" style="flex: 1; padding: 8px;">Сбросить</button>
+                    </div>
+                </div>
+
+                <div id="emailListContainer">
+                    <div style="padding: 40px 20px; text-align: center; color: var(--text-muted);">
+                        Загрузка писем...
+                    </div>
+                </div>
+            </section>
+
+            <!-- Просмотр письма -->
+            <section class="email-view" id="emailView">
+                <div class="empty-view">
+                    <img src="/img/logo.svg" alt="minzdrav">
+                    <h2>Выберите письмо</h2>
+                    <p>Здесь появится содержимое выбранного письма</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО НАПИСАНИЯ ПИСЬМА -->
+    <div class="modal-overlay" id="composeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>✏️ Новое письмо</h2>
+                <button class="modal-close" id="closeComposeBtn">×</button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="padding: 0 20px;">
+                    <div class="compose-field">
+                        <label>Кому:</label>
+                        <input type="text" id="composeTo" placeholder="имя@minzdrav.ru">
+                        <button class="compose-toggle-cc" id="toggleCcBtn">Копия</button>
+                    </div>
+                    <div class="compose-field" id="ccField" style="display:none;">
+                        <label>Копия:</label>
+                        <input type="text" id="composeCc" placeholder="имя@minzdrav.ru">
+                    </div>
+                    <div class="compose-field" id="bccField" style="display:none;">
+                        <label>Скрытая:</label>
+                        <input type="text" id="composeBcc" placeholder="имя@minzdrav.ru">
+                    </div>
+                    <div class="compose-field">
+                        <label>Тема:</label>
+                        <input type="text" id="composeSubject" placeholder="Тема письма">
+                    </div>
+                </div>
+
+                <div class="editor-toolbar">
+                    <button class="editor-btn" data-cmd="bold" title="Жирный"><b>B</b></button>
+                    <button class="editor-btn" data-cmd="italic" title="Курсив"><i>I</i></button>
+                    <button class="editor-btn" data-cmd="underline" title="Подчёркнутый"><u>U</u></button>
+                    <button class="editor-btn" data-cmd="strikeThrough" title="Зачёркнутый"><s>S</s></button>
+                    <span style="border-left: 1px solid var(--border); margin: 0 4px;"></span>
+                    <button class="editor-btn" data-cmd="insertUnorderedList" title="Список">•</button>
+                    <button class="editor-btn" data-cmd="insertOrderedList" title="Нумерованный">1.</button>
+                    <span style="border-left: 1px solid var(--border); margin: 0 4px;"></span>
+                    <button class="editor-btn" id="insertImageBtn" title="Вставить изображение">🖼️</button>
+                    <button class="editor-btn" id="insertLinkBtn" title="Ссылка">🔗</button>
+                </div>
+
+                <div contenteditable="true" class="editor-area" id="composeBody" placeholder="Введите текст письма..."></div>
+
+                <div id="attachmentPreview" class="attachment-preview"></div>
+            </div>
+
+            <div class="compose-footer">
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn" id="sendBtn">📤 Отправить</button>
+                    <button class="btn btn-secondary" id="saveDraftBtn">💾 Черновик</button>
+                </div>
+                <div>
+                    <input type="file" id="fileInput" multiple style="display:none;" accept="*/*">
+                    <button class="btn btn-secondary" id="attachFileBtn">📎 Вложить (до 10 МБ)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/theme.js"></script>
+    <script src="/js/mail.js"></script>
+</body>
+</html>
