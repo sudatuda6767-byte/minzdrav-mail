@@ -24,7 +24,7 @@ function displayProfile() {
     const avatarEl = document.getElementById('avatarPreview');
     avatarEl.onerror = function() {
         this.onerror = null;
-        this.src = '/img/default-avatar.png';
+        this.src = '/img/default-avatar.svg';
     };
     avatarEl.src = profileInfo.avatar || '/img/default-avatar.png';
     
