@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Админ-панель — minzdrav.ru</title>
+    <link rel="icon" href="/img/logo.svg">
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        body { background: var(--bg-main); min-height: 100vh; }
+        .admin-header {
+            background: linear-gradient(135deg, #1E3A8A 0%, #7C3AED 100%);
+            color: white;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 20px;
+        }
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--bg-panel);
+            padding: 8px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .admin-tab {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .admin-tab.active {
+            background: var(--brand-gradient);
+            color: white;
+        }
+        .admin-panel {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            display: none;
+        }
+        .admin-panel.active {
+            display: block;
+        }
+        .ticket-card, .user-card {
+            background: var(--bg-main);
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--brand-blue-light);
+        }
+        .ticket-card.resolved {
+            border-left-color: var(--success);
+            opacity: 0.75;
+        }
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .ticket-id {
+            font-weight: 700;
+            color: var(--brand-blue);
+        }
+        .ticket-status {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-open { background: #FEF3C7; color: #92400E; }
+        .status-resolved { background: #D1FAE5; color: #065F46; }
+        .ticket-email {
+            font-family: monospace;
+            color: var(--brand-blue-light);
+            margin-bottom: 6px;
+        }
+        .ticket-desc {
+            font-size: 13px;
+            color: var(--text-main);
+            padding: 10px;
+            background: var(--bg-panel);
+            border-radius: 8px;
+            margin: 8px 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .ticket-response {
+            background: #D1FAE5;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #065F46;
+            margin-top: 8px;
+        }
+        [data-theme="dark"] .ticket-response {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6EE7B7;
+        }
+        .user-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .user-info {
+            font-family: monospace;
+            font-size: 13px;
+        }
+        .user-email {
+            color: var(--brand-blue-light);
+            font-weight: 600;
+        }
+        .user-id {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+        .user-badge {
+            padding: 3px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-admin { background: #DBEAFE; color: #1E40AF; }
+        .badge-watched { background: #FEE2E2; color: #991B1B; }
+        .search-bar {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            color: var(--text-main);
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-header">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; background: white; border-radius: 8px; padding: 4px;">
+                <img src="/img/logo.svg" style="width: 100%;">
+            </div>
+            <h1 style="font-size: 20px;">🛡️ Админ-панель minzdrav.ru</h1>
+        </div>
+        <a href="/mail" class="btn btn-secondary" style="color: var(--text-main);">← К почте</a>
+    </div>
+
+    <div class="admin-container">
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="tickets">📮 Тикеты</button>
+            <button class="admin-tab" data-tab="users">👥 Пользователи</button>
+            <button class="admin-tab" data-tab="watched">⚠️ Под наблюдением</button>
+        </div>
+
+        <!-- Тикеты -->
+        <div class="admin-panel active" id="ticketsPanel">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 16px;">
+                <h2>📮 Обращения в поддержку</h2>
+                <select id="ticketFilter" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-main);">
+                    <option value="all">Все</option>
+                    <option value="open">Открытые</option>
+                    <option value="resolved">Решённые</option>
+                </select>
+            </div>
+            <div id="ticketsContainer">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Загрузка...</div>
+            </div>
+        </div>
+
+        <!-- Пользователи -->
+        <div class="admin-panel" id="usersPanel">
+            <h2 style="margin-bottom: 16px;">👥 Пользователи</h2>
+            <input type="text" class="search-bar" id="userSearch" placeholder="🔍 Поиск по email или ID...">
+            <div id="usersContainer">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Загрузка...</div>
+            </div>
+        </div>
+
+        <!-- Под наблюдением -->
+        <div class="admin-panel" id="watchedPanel">
+            <h2 style="margin-bottom: 16px;">⚠️ Пользователи под наблюдением</h2>
+            <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px;">
+                Письма от этих пользователей будут помечены как «Нежелательные» с предупреждением получателю.
+            </p>
+            <div id="watchedContainer">
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/theme.js"></script>
+    <script src="/js/admin.js"></script>
+</body>
+</html>
