@@ -21,7 +21,7 @@ async function initDatabase() {
                 email VARCHAR(50) UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
                 secret_word_hash TEXT NOT NULL,
-                avatar VARCHAR(255) DEFAULT '/img/default-avatar.png',
+                avatar VARCHAR(255) DEFAULT '/img/default-avatar.svg',
                 theme VARCHAR(20) DEFAULT 'light',
                 custom_color VARCHAR(20) DEFAULT NULL,
                 is_admin BOOLEAN DEFAULT FALSE,
