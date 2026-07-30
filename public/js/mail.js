@@ -59,7 +59,7 @@ function setupUser() {
         const headerAvatar = document.getElementById('headerAvatar');
         headerAvatar.onerror = function() {
             this.onerror = null;
-            this.src = '/img/default-avatar.png';
+            this.src = '/img/default-avatar.svg';
         };
         headerAvatar.src = currentUser.avatar;
     }
