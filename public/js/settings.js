@@ -26,7 +26,7 @@ function displayProfile() {
         this.onerror = null;
         this.src = '/img/default-avatar.svg';
     };
-    avatarEl.src = profileInfo.avatar || '/img/default-avatar.png';
+    avatarEl.src = profileInfo.avatar || '/img/default-avatar.svg';
     
     document.querySelectorAll('.theme-option').forEach(el => {
         el.classList.toggle('active', el.dataset.theme === profileInfo.theme);
